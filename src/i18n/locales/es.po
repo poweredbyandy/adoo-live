@@ -839,3 +839,21 @@ msgstr "Se eliminarán la configuración, el historial, metadatos de descargas, 
 
 msgid "Factory reset"
 msgstr "Restablecimiento de fábrica"
+
+msgid "Regenerate Odoo assets"
+msgstr "Regenerar activos Odoo"
+
+msgid "Regenerate cached Odoo module assets?"
+msgstr "¿Regenerar los activos del módulo Odoo en caché?"
+
+msgid "This will delete locally cached adoo_module files for all instances and download them again from compatible Odoo servers."
+msgstr "Se eliminarán los archivos adoo_module en caché de todas las instancias y se volverán a descargar desde los servidores Odoo compatibles."
+
+msgid "Odoo assets regenerated"
+msgstr "Activos Odoo regenerados"
+
+msgid "Odoo module assets updated"
+msgstr "Activos del módulo Odoo actualizados"
+
+msgid "Odoo module assets sync failed"
+msgstr "Error al sincronizar activos del módulo Odoo"

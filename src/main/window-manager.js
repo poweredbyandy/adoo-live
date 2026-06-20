@@ -21,6 +21,7 @@ const { attachContextMenu } = require('./context-menu');
 const { checkKioskCompatibilityFromWebContents } = require('./kiosk-compatibility');
 const { isNavigableOdooUrl } = require('../shared/kiosk-compatibility');
 const { attachKioskDeviceManager, stopKioskDeviceSession } = require('./kiosk-device-service');
+const { syncAdooModuleFromWebContents } = require('./adoo-module-service');
 const { t, getLocale, getCatalog } = require('../i18n');
 const { getPermissionsSnapshot } = require('./permission-service');
 
@@ -512,6 +513,7 @@ class WindowManager {
       if (tab.kioskCompatible) {
         appLogger.add('info', 'kiosk', t('Instance compatible'), pageUrl);
         attachKioskDeviceManager(tab.view.webContents, true);
+        syncAdooModuleFromWebContents(tab.view.webContents).catch(() => {});
       } else {
         stopKioskDeviceSession(tab.view.webContents);
         if (this.isOdooReachabilityError(result)) {

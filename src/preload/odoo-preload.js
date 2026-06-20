@@ -30,4 +30,7 @@ contextBridge.exposeInMainWorld('odooBrowser', {
     print: (opts) => ipcRenderer.invoke(IPC.PRINTER_PRINT, opts),
     printRaw: (opts) => ipcRenderer.invoke(IPC.PRINTER_PRINT_RAW, opts),
   },
+  system: {
+    getInfo: () => ipcRenderer.invoke(IPC.BROWSER_GET_SYSTEM_INFO),
+  },
 });

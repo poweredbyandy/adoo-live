@@ -168,6 +168,7 @@ const elements = {
   btnCheckUpdates: document.getElementById('btn-check-updates'),
   btnDownloadUpdate: document.getElementById('btn-download-update'),
   btnInstallUpdate: document.getElementById('btn-install-update'),
+  btnRegenerateOdooAssets: document.getElementById('btn-regenerate-odoo-assets'),
   btnFactoryReset: document.getElementById('btn-factory-reset'),
   settingsDownloadPath: document.getElementById('settings-download-path'),
   btnPickDownloadFolder: document.getElementById('btn-pick-download-folder'),
@@ -1300,6 +1301,21 @@ function bindSettingsPanel() {
         label: t('Restart and install'),
         describe: () => t('Restarting...'),
       });
+    });
+  }
+  if (elements.btnRegenerateOdooAssets) {
+    elements.btnRegenerateOdooAssets.addEventListener('click', async () => {
+      try {
+        const result = await runAction((api) => api.regenerateOdooAssets(), {
+          label: t('Regenerate Odoo assets'),
+          describe: (value) => (value?.cancelled ? t('Cancelled') : t('Odoo assets regenerated')),
+        });
+        if (result?.cancelled) {
+          return;
+        }
+      } catch {
+        void 0;
+      }
     });
   }
   if (elements.btnFactoryReset) {

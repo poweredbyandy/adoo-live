@@ -1,33 +1,31 @@
-const os = require('os');
 const { app } = require('electron');
-const { APP_DISPLAY_NAME } = require('../shared/constants');
-const { getDeviceIdentity, getOsVersion } = require('./device-identity');
+const { getSystemInfo } = require('./system-info-service');
 const { getAppIconUrl } = require('./app-icon');
 
 function getAboutInfo() {
-  const identity = getDeviceIdentity();
+  const system = getSystemInfo();
   return {
     appName: app.getName(),
-    productName: APP_DISPLAY_NAME,
-    version: app.getVersion(),
+    productName: system.runtime.appName,
+    version: system.runtime.appVersion,
     iconUrl: getAppIconUrl(),
-    electron: process.versions.electron,
-    chrome: process.versions.chrome,
-    node: process.versions.node,
-    platform: process.platform,
-    arch: process.arch,
-    osType: os.type(),
-    osRelease: os.release(),
-    osVersion: getOsVersion(),
-    hostname: identity.hostname,
-    deviceUid: identity.device_uid,
-    ipAddress: identity.ip_address,
-    macAddress: identity.mac_address,
-    totalMemoryGb: Math.round((os.totalmem() / (1024 ** 3)) * 10) / 10,
-    cpuModel: os.cpus()[0]?.model || '',
+    electron: system.runtime.electron,
+    chrome: system.runtime.chrome,
+    node: system.runtime.node,
+    platform: system.platform,
+    arch: system.arch,
+    osType: system.os.type,
+    osRelease: system.os.release,
+    osVersion: system.os.version,
+    hostname: system.device.hostname,
+    deviceUid: system.device.uid,
+    ipAddress: system.device.ipAddress,
+    macAddress: system.device.macAddress,
+    totalMemoryGb: system.hardware.totalMemoryGb,
+    cpuModel: system.hardware.cpuModel,
     appPath: app.getAppPath(),
     userDataPath: app.getPath('userData'),
-    isPackaged: app.isPackaged,
+    isPackaged: system.runtime.isPackaged,
   };
 }
 

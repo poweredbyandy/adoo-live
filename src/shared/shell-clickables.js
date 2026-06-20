@@ -165,6 +165,14 @@ const STATIC_CLICKABLES = [
     hiddenByDefault: true,
   },
   {
+    id: 'btn-regenerate-odoo-assets',
+    zone: 'settings',
+    label: 'Regenerate Odoo assets',
+    api: 'regenerateOdooAssets',
+    requiresSettingsOpen: true,
+    settingsPanel: 'about',
+  },
+  {
     id: 'btn-factory-reset',
     zone: 'settings',
     label: 'Factory reset',

@@ -45,6 +45,7 @@ contextBridge.exposeInMainWorld('shellAPI', {
   downloadUpdate: () => ipcRenderer.invoke(IPC.UPDATE_DOWNLOAD),
   installUpdate: () => ipcRenderer.invoke(IPC.UPDATE_INSTALL),
   factoryReset: () => ipcRenderer.invoke(IPC.APP_FACTORY_RESET),
+  regenerateOdooAssets: () => ipcRenderer.invoke(IPC.APP_REGENERATE_ODOO_ASSETS),
   confirm: (options) => ipcRenderer.invoke(IPC.APP_CONFIRM, options),
   getDownloadFolder: () => ipcRenderer.invoke(IPC.DOWNLOAD_GET_FOLDER),
   setDownloadFolder: (folderPath) => ipcRenderer.invoke(IPC.DOWNLOAD_SET_FOLDER, folderPath),

@@ -305,6 +305,7 @@ function createMockShellAPI(initialState) {
     downloadUpdate: () => record('downloadUpdate', [], { ok: true }),
     installUpdate: () => record('installUpdate', [], true),
     factoryReset: () => record('factoryReset', [], { cancelled: true }),
+    regenerateOdooAssets: () => record('regenerateOdooAssets', [], { cancelled: true }),
     confirm: (options) => record('confirm', [options], { confirmed: true }),
     getDownloadFolder: () => record('getDownloadFolder', [], { path: '/tmp/downloads', isCustom: false }),
     setDownloadFolder: (folderPath) => record('setDownloadFolder', [folderPath], { path: folderPath, isCustom: Boolean(folderPath) }),

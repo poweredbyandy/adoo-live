@@ -845,3 +845,21 @@ msgstr "This will delete configuration, history, downloads metadata, logs, devic
 
 msgid "Factory reset"
 msgstr "Factory reset"
+
+msgid "Regenerate Odoo assets"
+msgstr "Regenerate Odoo assets"
+
+msgid "Regenerate cached Odoo module assets?"
+msgstr "Regenerate cached Odoo module assets?"
+
+msgid "This will delete locally cached adoo_module files for all instances and download them again from compatible Odoo servers."
+msgstr "This will delete locally cached adoo_module files for all instances and download them again from compatible Odoo servers."
+
+msgid "Odoo assets regenerated"
+msgstr "Odoo assets regenerated"
+
+msgid "Odoo module assets updated"
+msgstr "Odoo module assets updated"
+
+msgid "Odoo module assets sync failed"
+msgstr "Odoo module assets sync failed"

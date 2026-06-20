@@ -1,6 +1,7 @@
 const { dialog } = require('electron');
 const { IPC } = require('../../shared/ipc-channels');
 const { performFactoryReset } = require('../factory-reset-service');
+const { regenerateAdooModuleAssets } = require('../adoo-module-service');
 const { getDialogParent } = require('../permission-service');
 const { t } = require('../../i18n');
 
@@ -46,6 +47,31 @@ function registerAppHandlers(ipcMain, windowRegistry, resolveWindowManager, prim
 
     await performFactoryReset();
     return { reset: true };
+  });
+
+  ipcMain.handle(IPC.APP_REGENERATE_ODOO_ASSETS, async (event) => {
+    const windowManager = resolveWindowManager(windowRegistry, event, primaryManager());
+    const browserWindow = windowManager?.window || getDialogParent(windowRegistry);
+
+    const result = await dialog.showMessageBox(browserWindow || undefined, {
+      type: 'question',
+      buttons: [t('Regenerate Odoo assets'), t('Cancel')],
+      defaultId: 1,
+      cancelId: 1,
+      noLink: true,
+      title: t('Regenerate Odoo assets'),
+      message: t('Regenerate cached Odoo module assets?'),
+      detail: t(
+        'This will delete locally cached adoo_module files for all instances and download them again from compatible Odoo servers.',
+      ),
+    });
+
+    if (result.response !== 0) {
+      return { cancelled: true };
+    }
+
+    const syncResult = await regenerateAdooModuleAssets(windowRegistry);
+    return { regenerated: true, ...syncResult };
   });
 }
 

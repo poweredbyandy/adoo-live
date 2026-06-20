@@ -19,5 +19,6 @@ describe('ipc-channels', () => {
     expect(odooPreload).toContain('IPC.SERIAL_LIST');
     expect(odooPreload).toContain('IPC.USB_LIST');
     expect(odooPreload).toContain('IPC.PRINTER_PRINT');
+    expect(odooPreload).toContain('IPC.BROWSER_GET_SYSTEM_INFO');
   });
 });

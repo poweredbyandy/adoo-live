@@ -22,6 +22,7 @@ const IPC = {
   BROWSER_SET_ZOOM: 'browser:setZoom',
   BROWSER_TOGGLE_DEVTOOLS: 'browser:toggleDevTools',
   BROWSER_GET_STATE: 'browser:getState',
+  BROWSER_GET_SYSTEM_INFO: 'browser:getSystemInfo',
   NOTIFY_SHOW: 'notify:show',
   PUSH_SUBSCRIBE: 'push:subscribe',
   PUSH_GET_SUBSCRIPTION: 'push:getSubscription',
@@ -70,6 +71,7 @@ const IPC = {
   UPDATE_INSTALL: 'update:install',
   UPDATE_EVENT: 'update:event',
   APP_FACTORY_RESET: 'app:factoryReset',
+  APP_REGENERATE_ODOO_ASSETS: 'app:regenerateOdooAssets',
   APP_CONFIRM: 'app:confirm',
 };
 

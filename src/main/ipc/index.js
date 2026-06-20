@@ -56,6 +56,11 @@ function registerIpcHandlers(ipcMain, windowRegistry, modeManager) {
 
   ipcMain.handle(IPC.BROWSER_GET_MODE, wrapHandler(() => modeManager.getCapabilities()));
 
+  ipcMain.handle(IPC.BROWSER_GET_SYSTEM_INFO, wrapHandler(() => {
+    const { getSystemInfo } = require('../system-info-service');
+    return getSystemInfo();
+  }));
+
   ipcMain.handle(IPC.BROWSER_GET_STATE, wrapHandler((event) => {
     const windowManager = resolveWindowManager(windowRegistry, event, primaryManager());
     return windowManager.getState();

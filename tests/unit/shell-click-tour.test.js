@@ -363,6 +363,10 @@ describe('shell click tour', () => {
       await clickElement(document.getElementById('btn-factory-reset'));
       expect(countApiCalls(api, 'factoryReset')).toBe(resetBefore + 1);
 
+      const regenerateBefore = countApiCalls(api, 'regenerateOdooAssets');
+      await clickElement(document.getElementById('btn-regenerate-odoo-assets'));
+      expect(countApiCalls(api, 'regenerateOdooAssets')).toBe(regenerateBefore + 1);
+
       const closeBefore = countApiCalls(api, 'setSettingsOpen');
       await clickElement(document.getElementById('btn-settings-close'));
       expect(document.getElementById('settings-modal').classList.contains('hidden')).toBe(true);

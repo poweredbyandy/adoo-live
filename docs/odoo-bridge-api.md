@@ -18,6 +18,33 @@ const mode = await window.odooBrowser.getMode();
 // { mode, canHaveTabs, canEditUrl, autoDevTools, navigationRestricted, verboseLogging }
 ```
 
+### `system.getInfo()`
+
+Retorna información del sistema operativo, hardware y runtime del navegador. Útil para elegir binarios o flujos distintos según plataforma (Windows, macOS, Linux) y arquitectura (`x64`, `arm64`).
+
+```javascript
+const info = await window.odooBrowser.system.getInfo();
+// {
+//   platform: 'darwin',
+//   arch: 'arm64',
+//   platformId: 'darwin-arm64',
+//   platformName: 'mac',
+//   os: { type, release, version },
+//   flags: { windows, mac, linux, arm, x64 },
+//   device: { uid, hostname, ipAddress, macAddress },
+//   runtime: { appName, appVersion, electron, chrome, node, isPackaged },
+//   hardware: { cpuCount, cpuModel, totalMemoryBytes, totalMemoryGb },
+//   locale: 'es'
+// }
+```
+
+Ejemplo para cargar un activo nativo del módulo Odoo:
+
+```javascript
+const { platformId } = await window.odooBrowser.system.getInfo();
+const nativePath = `native/${platformId}/device.node`;
+```
+
 ### `push.subscribe()` / `push.getSubscription()` / `push.unsubscribe()`
 
 Puente Web Push para Odoo 18. Electron no incluye el servicio push de Chromium; el navegador crea una suscripción local y recibe los mensajes de Odoo en un servidor HTTP interno, mostrando notificaciones nativas.
