@@ -16,6 +16,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+## [1.0.0-beta.6]
+
+### Other
+
+- Enhance GitHub release workflow to collect and upload release artifacts
+
+### Other
+
+- Enhance GitHub release workflow to collect and upload release artifacts
+
+### Added
+
+### Changed
+
+### Fixed
+
 ## [1.0.0-beta.1]
 
 ### Added
