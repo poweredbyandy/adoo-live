@@ -120,6 +120,11 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Sync CHANGELOG from commits
+        run: node scripts/sync-changelog.js "${GITHUB_REF_NAME#v}"
 
       - name: Build release summary
         id: notes
@@ -163,3 +168,20 @@ jobs:
             artifacts/win/**
           draft: false
           prerelease: ${{ contains(github.ref_name, '-') }}
+
+      - name: Push CHANGELOG to main
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin main
+          git checkout main
+          git pull --ff-only origin main
+          node scripts/sync-changelog.js "$VERSION"
+          git add CHANGELOG.md
+          if git diff --staged --quiet; then
+            echo "CHANGELOG.md already up to date on main."
+          else
+            git commit -m "[REL] docs: update CHANGELOG for v${VERSION}"
+            git push origin main
+          fi

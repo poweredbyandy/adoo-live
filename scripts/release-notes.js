@@ -23,10 +23,13 @@ function extractChangelogSection(version) {
 
 function buildReleaseBody(version) {
   const section = extractChangelogSection(version);
+  let body = `## adoo IoT v${version}\n\n`;
   if (section) {
-    return `## adoo IoT v${version}\n\n${section}`;
+    body += section;
+  } else {
+    body += 'See the auto-generated notes below for merged changes in this release.';
   }
-  return `## adoo IoT v${version}\n\nSee the auto-generated notes below for merged changes in this release.`;
+  return body;
 }
 
 const version = process.env.VERSION || process.argv[2];
@@ -35,4 +38,4 @@ if (!version) {
   process.exit(1);
 }
 
-process.stdout.write(buildReleaseBody(version));
+process.stdout.write(buildReleaseBody(version.replace(/^v/, '')));
