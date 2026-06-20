@@ -128,6 +128,26 @@ npm run changelog:sync -- 1.0.0-beta.2
 
 Útil para revisar antes de crear el tag.
 
+## Generar release en GitHub
+
+Script `scripts/github-release.sh` (alias `scripts/release-local.sh`). Solo requiere **git** y **npm**. [GitHub CLI](https://cli.github.com/) (`gh`) es opcional para vigilar el workflow hasta que termine (`brew install gh && gh auth login`).
+
+```bash
+chmod +x scripts/github-release.sh
+npm run release:github -- 1.0.0-beta.4
+```
+
+El script **no construye binarios en local**: sube el tag a GitHub, el workflow **Release** ejecuta tests, empaqueta macOS/Linux/Windows y crea el release con artefactos y notas.
+
+| Opción | Descripción |
+|--------|-------------|
+| `--yes` / `-y` | Sin confirmación interactiva |
+| `--skip-tests` | No ejecuta `npm test` antes del push |
+| `--dry-run` | Vista previa sin git ni GitHub |
+| `--no-watch` | Push del tag sin esperar el workflow |
+
+Sin versión usa `package.json`. Al finalizar (por defecto) espera el workflow y muestra la URL del release.
+
 ## Pre-releases
 
 Tags con guion (ej. `v1.0.0-beta.2`) se publican como **pre-release** en GitHub.
@@ -147,4 +167,6 @@ Tags con guion (ej. `v1.0.0-beta.2`) se publican como **pre-release** en GitHub.
 | `scripts/lib/changelog-from-git.js` | Parseo y clasificación de commits |
 | `scripts/sync-changelog.js` | Actualiza `CHANGELOG.md` |
 | `scripts/release-notes.js` | Texto del release en GitHub |
+| `scripts/github-release.sh` | Prepara versión, tag y genera release en GitHub |
+| `scripts/release-local.sh` | Alias de `github-release.sh` |
 | `.github/workflows/release.yml` | Pipeline de build y publicación |

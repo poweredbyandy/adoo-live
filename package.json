@@ -16,6 +16,7 @@
     "test:watch": "vitest",
     "changelog:sync": "node scripts/sync-changelog.js",
     "changelog:preview": "node scripts/release-notes.js",
+    "release:github": "bash scripts/github-release.sh",
     "rebuild": "node scripts/patch-usb-binding.js && electron-rebuild -f -w serialport,usb",
     "postinstall": "node scripts/postinstall.js",
     "dist": "electron-builder --publish never",
