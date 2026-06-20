@@ -1,0 +1,8 @@
+{
+  "baseUrl": "http://localhost:8069",
+  "defaultMode": "free",
+  "kioskAllowedHosts": ["localhost", "127.0.0.1"],
+  "maxTabs": 10,
+  "developerPin": null,
+  "uiLanguage": "en"
+}

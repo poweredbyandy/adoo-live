@@ -1,0 +1,517 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Kiosk Browser 1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#. module: odoo_kiosk_browser
+msgid "Menu"
+msgstr "Menu"
+
+msgid "Close"
+msgstr "Close"
+
+msgid "Back"
+msgstr "Back"
+
+msgid "Forward"
+msgstr "Forward"
+
+msgid "Reload (Shift+click: hard reload)"
+msgstr "Reload (Shift+click: hard reload)"
+
+msgid "Home"
+msgstr "Home"
+
+msgid "Odoo URL"
+msgstr "Odoo URL"
+
+msgid "Find in page"
+msgstr "Find in page"
+
+msgid "Previous"
+msgstr "Previous"
+
+msgid "Next"
+msgstr "Next"
+
+msgid "Keyboard shortcuts"
+msgstr "Keyboard shortcuts"
+
+msgid "Zoom"
+msgstr "Zoom"
+
+msgid "Zoom out"
+msgstr "Zoom out"
+
+msgid "Reset zoom"
+msgstr "Reset zoom"
+
+msgid "Zoom in"
+msgstr "Zoom in"
+
+msgid "Developer tools"
+msgstr "Developer tools"
+
+msgid "New Odoo tab"
+msgstr "New Odoo tab"
+
+msgid "View logs"
+msgstr "View logs"
+
+msgid "Page history"
+msgstr "Page history"
+
+msgid "Download history"
+msgstr "Download history"
+
+msgid "Copy logs"
+msgstr "Copy logs"
+
+msgid "Export logs to file"
+msgstr "Export logs to file"
+
+msgid "Clear logs"
+msgstr "Clear logs"
+
+msgid "Kiosk"
+msgstr "Kiosk"
+
+msgid "Window"
+msgstr "Window"
+
+msgid "Kiosk / Window mode"
+msgstr "Kiosk / Window mode"
+
+msgid "Language"
+msgstr "Language"
+
+msgid "Settings"
+msgstr "Settings"
+
+msgid "English"
+msgstr "English"
+
+msgid "Spanish"
+msgstr "Spanish"
+
+msgid "New tab"
+msgstr "New tab"
+
+msgid "Drag to reorder. Drop outside for a new window. Drop another window here to merge."
+msgstr "Drag to reorder. Drop outside for a new window. Drop another window here to merge."
+
+msgid "Start"
+msgstr "Start"
+
+msgid "Configure your Odoo instances and choose the default one"
+msgstr "Configure your Odoo instances and choose the default one"
+
+msgid "Name (e.g. Production)"
+msgstr "Name (e.g. Production)"
+
+msgid "URL (e.g. https://odoo.company.com)"
+msgstr "URL (e.g. https://odoo.company.com)"
+
+msgid "Add instance"
+msgstr "Add instance"
+
+msgid "No instances configured yet. Add the first one above."
+msgstr "No instances configured yet. Add the first one above."
+
+msgid "Logs"
+msgstr "Logs"
+
+msgid "Application log"
+msgstr "Application log"
+
+msgid "History"
+msgstr "History"
+
+msgid "Recently visited pages"
+msgstr "Recently visited pages"
+
+msgid "Clear"
+msgstr "Clear"
+
+msgid "Search by title, URL, or instance..."
+msgstr "Search by title, URL, or instance..."
+
+msgid "No pages in history yet."
+msgstr "No pages in history yet."
+
+msgid "No results for your search."
+msgstr "No results for your search."
+
+msgid "Downloads"
+msgstr "Downloads"
+
+msgid "Downloaded files"
+msgstr "Downloaded files"
+
+msgid "No downloads recorded."
+msgstr "No downloads recorded."
+
+msgid "Today"
+msgstr "Today"
+
+msgid "Yesterday"
+msgstr "Yesterday"
+
+msgid "Last 7 days"
+msgstr "Last 7 days"
+
+msgid "Earlier"
+msgstr "Earlier"
+
+msgid "Now"
+msgstr "Now"
+
+msgid "%(minutes)s min ago"
+msgstr "%(minutes)s min ago"
+
+msgid "Yesterday %(time)s"
+msgstr "Yesterday %(time)s"
+
+msgid "%(filtered)s of %(total)s"
+msgstr "%(filtered)s of %(total)s"
+
+msgid "%(count)s page"
+msgstr "%(count)s page"
+
+msgid "%(count)s pages"
+msgstr "%(count)s pages"
+
+msgid "Default"
+msgstr "Default"
+
+msgid "Configured"
+msgstr "Configured"
+
+msgid "Instance"
+msgstr "Instance"
+
+msgid "Mark as default"
+msgstr "Mark as default"
+
+msgid "Edit"
+msgstr "Edit"
+
+msgid "Delete"
+msgstr "Delete"
+
+msgid "Delete instance \"%(name)s\"?"
+msgstr "Delete instance \"%(name)s\"?"
+
+msgid "Clear all page history?"
+msgstr "Clear all page history?"
+
+msgid "Enter the Odoo instance URL."
+msgstr "Enter the Odoo instance URL."
+
+msgid "Logs copied to clipboard"
+msgstr "Logs copied to clipboard"
+
+msgid "Logs exported to:\n%(path)s"
+msgstr "Logs exported to:\n%(path)s"
+
+msgid "Completed"
+msgstr "Completed"
+
+msgid "Cancelled"
+msgstr "Cancelled"
+
+msgid "Interrupted"
+msgstr "Interrupted"
+
+msgid "In progress"
+msgstr "In progress"
+
+msgid "Untitled"
+msgstr "Untitled"
+
+msgid "Tab"
+msgstr "Tab"
+
+msgid "Developer"
+msgstr "Developer"
+
+msgid "Searching..."
+msgstr "Searching..."
+
+msgid "No results"
+msgstr "No results"
+
+msgid "%(current)s of %(total)s"
+msgstr "%(current)s of %(total)s"
+
+msgid "Odoo developer mode (double: assets)"
+msgstr "Odoo developer mode (double: assets)"
+
+msgid "Kiosk mode"
+msgstr "Kiosk mode"
+
+msgid "Window mode"
+msgstr "Window mode"
+
+msgid "Hard reload"
+msgstr "Hard reload"
+
+msgid "Navigation"
+msgstr "Navigation"
+
+msgid "Stop"
+msgstr "Stop"
+
+msgid "View"
+msgstr "View"
+
+msgid "Tabs"
+msgstr "Tabs"
+
+msgid "Close tab"
+msgstr "Close tab"
+
+msgid "Move tab to new window"
+msgstr "Move tab to new window"
+
+msgid "Duplicate tab"
+msgstr "Duplicate tab"
+
+msgid "Tab duplicated"
+msgstr "Tab duplicated"
+
+msgid "Help"
+msgstr "Help"
+
+msgid "Odoo developer mode"
+msgstr "Odoo developer mode"
+
+msgid "Open API documentation"
+msgstr "Open API documentation"
+
+msgid "Home panel"
+msgstr "Home panel"
+
+msgid "Application starting"
+msgstr "Application starting"
+
+msgid "Native notifications available"
+msgstr "Native notifications available"
+
+msgid "Native notifications not supported"
+msgstr "Native notifications not supported"
+
+msgid "Window ready"
+msgstr "Window ready"
+
+msgid "Initial mode"
+msgstr "Initial mode"
+
+msgid "Odoo tab created"
+msgstr "Odoo tab created"
+
+msgid "Panel tab created"
+msgstr "Panel tab created"
+
+msgid "Tab detached to new window"
+msgstr "Tab detached to new window"
+
+msgid "Tab attached from another window"
+msgstr "Tab attached from another window"
+
+msgid "Window merged"
+msgstr "Window merged"
+
+msgid "Navigating"
+msgstr "Navigating"
+
+msgid "Blocked in kiosk mode"
+msgstr "Blocked in kiosk mode"
+
+msgid "Hard reload"
+msgstr "Hard reload"
+
+msgid "Reload"
+msgstr "Reload"
+
+msgid "Odoo developer mode enabled"
+msgstr "Odoo developer mode enabled"
+
+msgid "No active Odoo tab"
+msgstr "No active Odoo tab"
+
+msgid "No URL loaded"
+msgstr "No URL loaded"
+
+msgid "Find in page"
+msgstr "Find in page"
+
+msgid "Mode changed"
+msgstr "Mode changed"
+
+msgid "Shortcuts registered"
+msgstr "Shortcuts registered"
+
+msgid "Could not register shortcut"
+msgstr "Could not register shortcut"
+
+msgid "Developer Odoo"
+msgstr "Developer Odoo"
+
+msgid "Developer Odoo shortcut"
+msgstr "Developer Odoo shortcut"
+
+msgid "No active window"
+msgstr "No active window"
+
+msgid "Logs cleared"
+msgstr "Logs cleared"
+
+msgid "Logs exported"
+msgstr "Logs exported"
+
+msgid "Could not install notification shim"
+msgstr "Could not install notification shim"
+
+msgid "Could not install push shim"
+msgstr "Could not install push shim"
+
+msgid "Open menu"
+msgstr "Open menu"
+
+msgid "Close menu"
+msgstr "Close menu"
+
+msgid "Open find bar"
+msgstr "Open find bar"
+
+msgid "Close find bar"
+msgstr "Close find bar"
+
+msgid "Clear search"
+msgstr "Clear search"
+
+msgid "Navigate URL"
+msgstr "Navigate URL"
+
+msgid "Clear page history"
+msgstr "Clear page history"
+
+msgid "Empty history"
+msgstr "Empty history"
+
+msgid "Add Odoo instance"
+msgstr "Add Odoo instance"
+
+msgid "shellAPI is not available. Preload did not load correctly."
+msgstr "shellAPI is not available. Preload did not load correctly."
+
+msgid "Started"
+msgstr "Started"
+
+msgid "Enabled"
+msgstr "Enabled"
+
+msgid "Disabled"
+msgstr "Disabled"
+
+msgid "No effect (control disabled)"
+msgstr "No effect (control disabled)"
+
+msgid "Undo"
+msgstr "Undo"
+
+msgid "Redo"
+msgstr "Redo"
+
+msgid "Cut"
+msgstr "Cut"
+
+msgid "Copy"
+msgstr "Copy"
+
+msgid "Paste"
+msgstr "Paste"
+
+msgid "Delete"
+msgstr "Delete"
+
+msgid "Select all"
+msgstr "Select all"
+
+msgid "Copy link address"
+msgstr "Copy link address"
+
+msgid "Open link in new tab"
+msgstr "Open link in new tab"
+
+msgid "Copy image address"
+msgstr "Copy image address"
+
+msgid "PBA Kiosk compatible"
+msgstr "PBA Kiosk compatible"
+
+msgid "Loading"
+msgstr "Loading"
+
+msgid "Instance compatible"
+msgstr "Instance compatible"
+
+msgid "Instance not compatible"
+msgstr "Instance not compatible"
+
+msgid "Unknown error"
+msgstr "Unknown error"
+
+msgid "Device heartbeat sent"
+msgstr "Device heartbeat sent"
+
+msgid "Device heartbeat failed"
+msgstr "Device heartbeat failed"
+
+msgid "Device disconnected"
+msgstr "Device disconnected"
+
+msgid "Local print completed"
+msgstr "Local print completed"
+
+msgid "Remote print job received"
+msgstr "Remote print job received"
+
+msgid "Remote print completed"
+msgstr "Remote print completed"
+
+msgid "Remote print failed"
+msgstr "Remote print failed"
+
+msgid "Bus websocket connected"
+msgstr "Bus websocket connected"
+
+msgid "Bus websocket disconnected"
+msgstr "Bus websocket disconnected"
+
+msgid "Bus websocket error"
+msgstr "Bus websocket error"
+
+msgid "Sending document to printer"
+msgstr "Sending document to printer"
+
+msgid "Receiving remote print job"
+msgstr "Receiving remote print job"
+
+msgid "Print failed"
+msgstr "Print failed"
+
+msgid "Document"
+msgstr "Document"
+
+msgid "Printer"
+msgstr "Printer"
+
+msgid "%(document)s → %(printer)s"
+msgstr "%(document)s → %(printer)s"

@@ -1,0 +1,63 @@
+{
+  "name": "odoo-kiosk",
+  "version": "1.0.0",
+  "description": "Odoo Browser - Kiosk",
+  "license": "MIT",
+  "author": "andyengit",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "rebuild": "electron-rebuild -f -w serialport,usb",
+    "postinstall": "electron-rebuild -f -w serialport,usb || true",
+    "dist": "electron-builder",
+    "dist:win": "electron-builder --win",
+    "dist:linux": "electron-builder --linux",
+    "dist:mac": "electron-builder --mac"
+  },
+  "dependencies": {
+    "http_ece": "^1.2.0",
+    "serialport": "^13.0.0",
+    "usb": "^2.14.0",
+    "ws": "^8.21.0"
+  },
+  "devDependencies": {
+    "@electron/rebuild": "^3.7.1",
+    "electron": "42.4.0",
+    "electron-builder": "^25.1.8",
+    "vitest": "^3.2.4"
+  },
+  "build": {
+    "appId": "com.andyengit.odoo-kiosk",
+    "productName": "Odoo Kiosk Browser",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "config.default.json",
+      "src/**/*"
+    ],
+    "mac": {
+      "category": "public.app-category.business",
+      "target": [
+        "dmg",
+        "zip"
+      ]
+    },
+    "win": {
+      "target": [
+        "nsis",
+        "portable"
+      ]
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "category": "Office"
+    }
+  }
+}

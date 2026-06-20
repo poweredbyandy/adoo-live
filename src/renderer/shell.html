@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Odoo Browser</title>
+    <link rel="stylesheet" href="shell.css" />
+  </head>
+  <body>
+    <div id="chrome">
+      <div id="titlebar" class="titlebar">
+        <div id="tabs-bar" class="tabs-bar hidden" data-i18n-title="Drag to reorder. Drop outside for a new window. Drop another window here to merge.">
+          <div class="tabs-scroll">
+            <div id="tabs-list" class="tabs-list"></div>
+            <button id="btn-new-tab" class="tab-add-btn tab-only" data-i18n-title="New tab">+</button>
+          </div>
+        </div>
+        <div id="titlebar-drag" class="titlebar-drag"></div>
+      </div>
+
+      <header class="toolbar">
+        <div class="toolbar-left">
+          <div class="toolbar-nav">
+            <button id="btn-back" class="icon-btn nav-btn" data-i18n-title="Back" disabled>&lt;</button>
+            <button id="btn-forward" class="icon-btn nav-btn" data-i18n-title="Forward" disabled>&gt;</button>
+            <button id="btn-reload" class="icon-btn nav-btn" data-i18n-title="Reload (Shift+click: hard reload)">↻</button>
+            <button id="btn-home" class="icon-btn nav-btn" data-i18n-title="Home">⌂</button>
+          </div>
+        </div>
+
+        <div class="toolbar-center">
+          <input id="url-input" type="text" data-i18n-placeholder="Odoo URL" />
+          <span id="url-display" class="url-display hidden"></span>
+        </div>
+
+        <div class="toolbar-right">
+          <button id="btn-menu" class="icon-btn nav-btn menu-trigger" data-i18n-title="Menu">☰</button>
+        </div>
+      </header>
+
+      <div id="find-bar" class="find-bar hidden">
+        <input id="find-input" type="text" data-i18n-placeholder="Find in page" />
+        <span id="find-status" class="find-status"></span>
+        <button id="btn-find-prev" class="icon-btn" data-i18n-title="Previous">↑</button>
+        <button id="btn-find-next" class="icon-btn" data-i18n-title="Next">↓</button>
+        <button id="btn-find-close" class="icon-btn" data-i18n-title="Close">✕</button>
+      </div>
+
+      <div id="print-banner" class="print-banner hidden" aria-live="polite">
+        <div id="print-notices" class="print-notices"></div>
+      </div>
+    </div>
+
+    <div id="menu-backdrop" class="menu-backdrop hidden"></div>
+
+    <aside id="menu-panel" class="menu-drawer hidden" aria-hidden="true">
+      <div class="menu-drawer-header">
+        <span data-i18n>Menu</span>
+        <button id="btn-menu-close" class="icon-btn" data-i18n-title="Close">✕</button>
+      </div>
+      <div class="menu-drawer-scroll-wrap">
+        <div id="menu-drawer-scroll" class="menu-drawer-scroll">
+          <div class="menu-section">
+            <span class="menu-label" data-i18n>Navigation</span>
+            <button class="menu-item tab-only" data-action="new-tab" data-i18n>New Odoo tab</button>
+            <button class="menu-item" data-action="find" data-i18n>Find in page</button>
+          </div>
+          <div class="menu-section">
+            <span class="menu-label" data-i18n>View</span>
+            <div class="zoom-control">
+              <span class="zoom-title" data-i18n>Zoom</span>
+              <div class="zoom-stepper">
+                <button id="btn-zoom-out" class="zoom-btn" type="button" data-i18n-title="Zoom out">−</button>
+                <button id="btn-zoom-reset" class="zoom-value" type="button" data-i18n-title="Reset zoom">100%</button>
+                <button id="btn-zoom-in" class="zoom-btn" type="button" data-i18n-title="Zoom in">+</button>
+              </div>
+            </div>
+          </div>
+          <div class="menu-section tab-only">
+            <span class="menu-label" data-i18n>History</span>
+            <button class="menu-item" data-action="open-history" data-i18n>Page history</button>
+            <button class="menu-item" data-action="open-downloads" data-i18n>Download history</button>
+          </div>
+          <div class="menu-section dev-only">
+            <span class="menu-label" data-i18n>Developer</span>
+            <button class="menu-item" data-action="devtools" data-i18n>Developer tools</button>
+          </div>
+          <div class="menu-section">
+            <span class="menu-label" data-i18n>Settings</span>
+            <div id="mode-segment" class="mode-segment is-kiosk" role="radiogroup" data-i18n-aria-label="Kiosk / Window mode">
+              <span class="mode-segment-indicator" aria-hidden="true"></span>
+              <button type="button" class="mode-segment-option active" data-mode="kiosk" aria-pressed="true" data-i18n>Kiosk</button>
+              <button type="button" class="mode-segment-option" data-mode="free" aria-pressed="false" data-i18n>Window</button>
+            </div>
+            <label class="menu-select-field" for="language-select">
+              <span class="menu-select-label" data-i18n>Language</span>
+              <select id="language-select" class="menu-select" data-i18n-aria-label="Language">
+                <option value="en" data-i18n>English</option>
+                <option value="es" data-i18n>Spanish</option>
+              </select>
+            </label>
+          </div>
+          <div class="menu-section">
+            <span class="menu-label" data-i18n>Help</span>
+            <div id="keymap-list" class="keymap-list"></div>
+          </div>
+          <div class="menu-section">
+            <span class="menu-label" data-i18n>Logs</span>
+            <button class="menu-item tab-only" data-action="open-logs" data-i18n>View logs</button>
+            <button class="menu-item" data-action="copy-logs" data-i18n>Copy logs</button>
+            <button class="menu-item" data-action="export-logs" data-i18n>Export logs to file</button>
+            <button class="menu-item" data-action="clear-logs" data-i18n>Clear logs</button>
+          </div>
+        </div>
+        <div class="menu-drawer-scrollbar" aria-hidden="true">
+          <div class="menu-drawer-scrollbar-thumb"></div>
+        </div>
+      </div>
+    </aside>
+
+    <main id="shell-content" class="shell-content hidden">
+      <section id="panel-home" class="panel hidden" data-panel="home">
+        <div class="panel-header">
+          <h1 data-i18n>Start</h1>
+          <p class="panel-subtitle" data-i18n>Configure your Odoo instances and choose the default one</p>
+        </div>
+        <form id="home-instance-form" class="home-instance-form">
+          <input id="home-instance-label" class="home-instance-input" type="text" data-i18n-placeholder="Name (e.g. Production)" />
+          <input id="home-instance-url" class="home-instance-input" type="text" data-i18n-placeholder="URL (e.g. https://odoo.company.com)" required />
+          <button id="home-instance-submit" class="home-instance-submit" type="submit" data-i18n>Add instance</button>
+        </form>
+        <div id="home-instances" class="panel-list"></div>
+        <div id="home-empty" class="panel-empty hidden" data-i18n>No instances configured yet. Add the first one above.</div>
+      </section>
+
+      <section id="panel-logs" class="panel hidden" data-panel="logs">
+        <div class="panel-header panel-header-row">
+          <div>
+            <h1 data-i18n>Logs</h1>
+            <p class="panel-subtitle" data-i18n>Application log</p>
+          </div>
+        </div>
+        <pre id="logs-content" class="logs-content"></pre>
+      </section>
+
+      <section id="panel-history" class="panel hidden" data-panel="history">
+        <div class="panel-header history-header">
+          <div>
+            <h1 data-i18n>History</h1>
+            <p class="panel-subtitle" data-i18n>Recently visited pages</p>
+          </div>
+          <button id="btn-history-clear" type="button" class="history-clear-btn" disabled data-i18n>Clear</button>
+        </div>
+        <div class="history-toolbar">
+          <input id="history-search" type="search" class="history-search" data-i18n-placeholder="Search by title, URL, or instance..." />
+          <span id="history-count" class="history-count"></span>
+        </div>
+        <div id="history-list" class="history-list"></div>
+        <div id="history-empty" class="panel-empty hidden" data-i18n>No pages in history yet.</div>
+        <div id="history-no-results" class="panel-empty hidden" data-i18n>No results for your search.</div>
+      </section>
+
+      <section id="panel-downloads" class="panel hidden" data-panel="downloads">
+        <div class="panel-header">
+          <h1 data-i18n>Downloads</h1>
+          <p class="panel-subtitle" data-i18n>Downloaded files</p>
+        </div>
+        <div id="downloads-list" class="panel-list"></div>
+        <div id="downloads-empty" class="panel-empty hidden" data-i18n>No downloads recorded.</div>
+      </section>
+    </main>
+
+    <div id="boot-error" class="boot-error hidden"></div>
+
+    <script src="i18n.js"></script>
+    <script src="shell.js"></script>
+  </body>
+</html>

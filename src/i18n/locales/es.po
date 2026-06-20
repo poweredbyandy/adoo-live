@@ -1,0 +1,511 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Kiosk Browser 1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#. module: odoo_kiosk_browser
+msgid "Menu"
+msgstr "Menú"
+
+msgid "Close"
+msgstr "Cerrar"
+
+msgid "Back"
+msgstr "Atrás"
+
+msgid "Forward"
+msgstr "Adelante"
+
+msgid "Reload (Shift+click: hard reload)"
+msgstr "Recargar (Mayús+clic: sin caché)"
+
+msgid "Home"
+msgstr "Inicio"
+
+msgid "Odoo URL"
+msgstr "URL de Odoo"
+
+msgid "Find in page"
+msgstr "Buscar en página"
+
+msgid "Previous"
+msgstr "Anterior"
+
+msgid "Next"
+msgstr "Siguiente"
+
+msgid "Keyboard shortcuts"
+msgstr "Atajos de teclado"
+
+msgid "Zoom"
+msgstr "Zoom"
+
+msgid "Zoom out"
+msgstr "Alejar"
+
+msgid "Reset zoom"
+msgstr "Restablecer zoom"
+
+msgid "Zoom in"
+msgstr "Acercar"
+
+msgid "Developer tools"
+msgstr "Herramientas de desarrollador"
+
+msgid "New Odoo tab"
+msgstr "Nueva pestaña Odoo"
+
+msgid "View logs"
+msgstr "Ver logs"
+
+msgid "Page history"
+msgstr "Historial de páginas"
+
+msgid "Download history"
+msgstr "Historial de descargas"
+
+msgid "Copy logs"
+msgstr "Copiar logs"
+
+msgid "Export logs to file"
+msgstr "Exportar logs a archivo"
+
+msgid "Clear logs"
+msgstr "Limpiar logs"
+
+msgid "Kiosk"
+msgstr "Kiosk"
+
+msgid "Window"
+msgstr "Ventana"
+
+msgid "Kiosk / Window mode"
+msgstr "Modo Kiosk / Ventana"
+
+msgid "Language"
+msgstr "Idioma"
+
+msgid "Settings"
+msgstr "Ajustes"
+
+msgid "English"
+msgstr "English"
+
+msgid "Spanish"
+msgstr "Español"
+
+msgid "New tab"
+msgstr "Nueva pestaña"
+
+msgid "Drag to reorder. Drop outside for a new window. Drop another window here to merge."
+msgstr "Arrastra para reordenar. Suelta fuera para nueva ventana. Arrastra otra ventana aquí para fusionar."
+
+msgid "Start"
+msgstr "Inicio"
+
+msgid "Configure your Odoo instances and choose the default one"
+msgstr "Configura tus instancias Odoo y elige cuál abrir por defecto"
+
+msgid "Name (e.g. Production)"
+msgstr "Nombre (ej. Producción)"
+
+msgid "URL (e.g. https://odoo.company.com)"
+msgstr "URL (ej. https://odoo.empresa.com)"
+
+msgid "Add instance"
+msgstr "Añadir instancia"
+
+msgid "No instances configured yet. Add the first one above."
+msgstr "Aún no hay instancias configuradas. Añade la primera arriba."
+
+msgid "Logs"
+msgstr "Logs"
+
+msgid "Application log"
+msgstr "Registro de la aplicación"
+
+msgid "History"
+msgstr "Historial"
+
+msgid "Recently visited pages"
+msgstr "Páginas visitadas recientemente"
+
+msgid "Clear"
+msgstr "Vaciar"
+
+msgid "Search by title, URL, or instance..."
+msgstr "Buscar por título, URL o instancia..."
+
+msgid "No pages in history yet."
+msgstr "Aún no hay páginas en el historial."
+
+msgid "No results for your search."
+msgstr "No hay resultados para tu búsqueda."
+
+msgid "Downloads"
+msgstr "Descargas"
+
+msgid "Downloaded files"
+msgstr "Archivos descargados"
+
+msgid "No downloads recorded."
+msgstr "No hay descargas registradas."
+
+msgid "Today"
+msgstr "Hoy"
+
+msgid "Yesterday"
+msgstr "Ayer"
+
+msgid "Last 7 days"
+msgstr "Últimos 7 días"
+
+msgid "Earlier"
+msgstr "Anteriores"
+
+msgid "Now"
+msgstr "Ahora"
+
+msgid "%(minutes)s min ago"
+msgstr "Hace %(minutes)s min"
+
+msgid "Yesterday %(time)s"
+msgstr "Ayer %(time)s"
+
+msgid "%(filtered)s of %(total)s"
+msgstr "%(filtered)s de %(total)s"
+
+msgid "%(count)s page"
+msgstr "%(count)s página"
+
+msgid "%(count)s pages"
+msgstr "%(count)s páginas"
+
+msgid "Default"
+msgstr "Predeterminada"
+
+msgid "Configured"
+msgstr "Configurada"
+
+msgid "Instance"
+msgstr "Instancia"
+
+msgid "Mark as default"
+msgstr "Marcar como predeterminada"
+
+msgid "Edit"
+msgstr "Editar"
+
+msgid "Delete"
+msgstr "Eliminar"
+
+msgid "Delete instance \"%(name)s\"?"
+msgstr "¿Eliminar la instancia \"%(name)s\"?"
+
+msgid "Clear all page history?"
+msgstr "¿Vaciar todo el historial de páginas?"
+
+msgid "Enter the Odoo instance URL."
+msgstr "Indica la URL de la instancia Odoo."
+
+msgid "Logs copied to clipboard"
+msgstr "Logs copiados al portapapeles"
+
+msgid "Logs exported to:\n%(path)s"
+msgstr "Logs exportados en:\n%(path)s"
+
+msgid "Completed"
+msgstr "Completada"
+
+msgid "Cancelled"
+msgstr "Cancelada"
+
+msgid "Interrupted"
+msgstr "Interrumpida"
+
+msgid "In progress"
+msgstr "En curso"
+
+msgid "Untitled"
+msgstr "Sin nombre"
+
+msgid "Tab"
+msgstr "Pestaña"
+
+msgid "Developer"
+msgstr "Desarrollador"
+
+msgid "Searching..."
+msgstr "Buscando..."
+
+msgid "No results"
+msgstr "Sin resultados"
+
+msgid "%(current)s of %(total)s"
+msgstr "%(current)s de %(total)s"
+
+msgid "Odoo developer mode (double: assets)"
+msgstr "Modo desarrollador Odoo (doble: assets)"
+
+msgid "Kiosk mode"
+msgstr "Modo Kiosk"
+
+msgid "Window mode"
+msgstr "Modo Ventana"
+
+msgid "Hard reload"
+msgstr "Recargar sin caché"
+
+msgid "Navigation"
+msgstr "Navegación"
+
+msgid "Stop"
+msgstr "Detener"
+
+msgid "View"
+msgstr "Ver"
+
+msgid "Tabs"
+msgstr "Pestañas"
+
+msgid "Close tab"
+msgstr "Cerrar pestaña"
+
+msgid "Move tab to new window"
+msgstr "Separar a ventana"
+
+msgid "Duplicate tab"
+msgstr "Duplicar"
+
+msgid "Tab duplicated"
+msgstr "Pestaña duplicada"
+
+msgid "Help"
+msgstr "Ayuda"
+
+msgid "Odoo developer mode"
+msgstr "Modo desarrollador Odoo"
+
+msgid "Open API documentation"
+msgstr "Abrir documentación API"
+
+msgid "Home panel"
+msgstr "Panel inicio"
+
+msgid "Application starting"
+msgstr "Iniciando aplicación"
+
+msgid "Native notifications available"
+msgstr "Notificaciones nativas disponibles"
+
+msgid "Native notifications not supported"
+msgstr "Notificaciones nativas no soportadas"
+
+msgid "Window ready"
+msgstr "Ventana lista"
+
+msgid "Initial mode"
+msgstr "Modo inicial"
+
+msgid "Odoo tab created"
+msgstr "Pestaña Odoo creada"
+
+msgid "Panel tab created"
+msgstr "Pestaña de panel creada"
+
+msgid "Tab detached to new window"
+msgstr "Pestaña desacoplada a nueva ventana"
+
+msgid "Tab attached from another window"
+msgstr "Pestaña anexada desde otra ventana"
+
+msgid "Window merged"
+msgstr "Ventana fusionada"
+
+msgid "Navigating"
+msgstr "Navegando"
+
+msgid "Blocked in kiosk mode"
+msgstr "Bloqueada en modo kiosko"
+
+msgid "Reload"
+msgstr "Recargar"
+
+msgid "Odoo developer mode enabled"
+msgstr "Modo desarrollador Odoo activado"
+
+msgid "No active Odoo tab"
+msgstr "No hay pestaña Odoo activa"
+
+msgid "No URL loaded"
+msgstr "No hay URL cargada"
+
+msgid "Mode changed"
+msgstr "Modo cambiado"
+
+msgid "Shortcuts registered"
+msgstr "Atajos registrados"
+
+msgid "Could not register shortcut"
+msgstr "No se pudo registrar atajo"
+
+msgid "Developer Odoo"
+msgstr "Desarrollador Odoo"
+
+msgid "Developer Odoo shortcut"
+msgstr "Atajo desarrollador Odoo"
+
+msgid "No active window"
+msgstr "Sin ventana activa"
+
+msgid "Logs cleared"
+msgstr "Logs limpiados"
+
+msgid "Logs exported"
+msgstr "Logs exportados"
+
+msgid "Could not install notification shim"
+msgstr "No se pudo instalar notification shim"
+
+msgid "Could not install push shim"
+msgstr "No se pudo instalar push shim"
+
+msgid "Open menu"
+msgstr "Abrir menú"
+
+msgid "Close menu"
+msgstr "Cerrar menú"
+
+msgid "Open find bar"
+msgstr "Abrir buscar en página"
+
+msgid "Close find bar"
+msgstr "Cerrar buscar en página"
+
+msgid "Clear search"
+msgstr "Limpiar búsqueda"
+
+msgid "Navigate URL"
+msgstr "Navegar URL"
+
+msgid "Clear page history"
+msgstr "Vaciar historial de páginas"
+
+msgid "Empty history"
+msgstr "Historial vacío"
+
+msgid "Add Odoo instance"
+msgstr "Añadir instancia Odoo"
+
+msgid "shellAPI is not available. Preload did not load correctly."
+msgstr "shellAPI no disponible. El preload no se cargó correctamente."
+
+msgid "Started"
+msgstr "iniciado"
+
+msgid "Enabled"
+msgstr "activado"
+
+msgid "Disabled"
+msgstr "desactivado"
+
+msgid "No effect (control disabled)"
+msgstr "sin efecto (control deshabilitado)"
+
+msgid "Undo"
+msgstr "Deshacer"
+
+msgid "Redo"
+msgstr "Rehacer"
+
+msgid "Cut"
+msgstr "Cortar"
+
+msgid "Copy"
+msgstr "Copiar"
+
+msgid "Paste"
+msgstr "Pegar"
+
+msgid "Delete"
+msgstr "Eliminar"
+
+msgid "Select all"
+msgstr "Seleccionar todo"
+
+msgid "Copy link address"
+msgstr "Copiar dirección del enlace"
+
+msgid "Open link in new tab"
+msgstr "Abrir enlace en nueva pestaña"
+
+msgid "Copy image address"
+msgstr "Copiar dirección de la imagen"
+
+msgid "PBA Kiosk compatible"
+msgstr "Compatible con PBA Kiosk"
+
+msgid "Loading"
+msgstr "Cargando"
+
+msgid "Instance compatible"
+msgstr "Instancia compatible"
+
+msgid "Instance not compatible"
+msgstr "Instancia no compatible"
+
+msgid "Unknown error"
+msgstr "Error desconocido"
+
+msgid "Device heartbeat sent"
+msgstr "Heartbeat de dispositivo enviado"
+
+msgid "Device heartbeat failed"
+msgstr "Falló el heartbeat del dispositivo"
+
+msgid "Device disconnected"
+msgstr "Dispositivo desconectado"
+
+msgid "Local print completed"
+msgstr "Impresión local completada"
+
+msgid "Remote print job received"
+msgstr "Trabajo de impresión remota recibido"
+
+msgid "Remote print completed"
+msgstr "Impresión remota completada"
+
+msgid "Remote print failed"
+msgstr "Falló la impresión remota"
+
+msgid "Bus websocket connected"
+msgstr "Websocket del bus conectado"
+
+msgid "Bus websocket disconnected"
+msgstr "Websocket del bus desconectado"
+
+msgid "Bus websocket error"
+msgstr "Error del websocket del bus"
+
+msgid "Sending document to printer"
+msgstr "Enviando documento a la impresora"
+
+msgid "Receiving remote print job"
+msgstr "Recibiendo impresión remota"
+
+msgid "Print failed"
+msgstr "No se pudo imprimir"
+
+msgid "Document"
+msgstr "Documento"
+
+msgid "Printer"
+msgstr "Impresora"
+
+msgid "%(document)s → %(printer)s"
+msgstr "%(document)s → %(printer)s"
