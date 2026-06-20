@@ -9,6 +9,7 @@
     "start": "electron .",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:click-tour": "vitest run tests/unit/shell-click-tour.test.js tests/unit/shell-click-registry.test.js",
     "rebuild": "node scripts/patch-usb-binding.js && electron-rebuild -f -w serialport,usb",
     "postinstall": "node scripts/postinstall.js",
     "dist": "electron-builder",
@@ -27,6 +28,7 @@
     "@electron/rebuild": "^4.0.4",
     "electron": "^42.4.1",
     "electron-builder": "^26.15.3",
+    "happy-dom": "^17.6.3",
     "vitest": "^3.2.4"
   },
   "build": {

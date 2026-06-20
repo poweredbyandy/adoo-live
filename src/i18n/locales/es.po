@@ -123,6 +123,12 @@ msgstr "URL (ej. https://odoo.empresa.com)"
 msgid "Add instance"
 msgstr "Añadir instancia"
 
+msgid "Save changes"
+msgstr "Guardar cambios"
+
+msgid "Cancel"
+msgstr "Cancelar"
+
 msgid "No instances configured yet. Add the first one above."
 msgstr "Aún no hay instancias configuradas. Añade la primera arriba."
 

@@ -6,7 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>adoo IoT</title>
     <link rel="icon" type="image/png" href="../../icon.png" />
-    <link rel="stylesheet" href="shell.css" />
+    <link rel="stylesheet" href="ui/tokens.css" />
+    <link rel="stylesheet" href="ui/base.css" />
+    <link rel="stylesheet" href="ui/components.css" />
+    <link rel="stylesheet" href="ui/shell-chrome.css" />
   </head>
   <body>
     <div id="chrome">
@@ -23,29 +26,29 @@
       <header class="toolbar">
         <div class="toolbar-left">
           <div class="toolbar-nav">
-            <button id="btn-back" class="icon-btn nav-btn" data-i18n-title="Back" disabled>&lt;</button>
-            <button id="btn-forward" class="icon-btn nav-btn" data-i18n-title="Forward" disabled>&gt;</button>
-            <button id="btn-reload" class="icon-btn nav-btn" data-i18n-title="Reload (Shift+click: hard reload)">↻</button>
-            <button id="btn-home" class="icon-btn nav-btn" data-i18n-title="Home">⌂</button>
+            <button id="btn-back" class="ui-btn ui-btn--icon ui-btn--ghost icon-btn nav-btn" type="button" data-ui-icon="chevron-left" data-i18n-title="Back" disabled></button>
+            <button id="btn-forward" class="ui-btn ui-btn--icon ui-btn--ghost icon-btn nav-btn" type="button" data-ui-icon="chevron-right" data-i18n-title="Forward" disabled></button>
+            <button id="btn-reload" class="ui-btn ui-btn--icon ui-btn--ghost icon-btn nav-btn" type="button" data-ui-icon="reload" data-i18n-title="Reload (Shift+click: hard reload)"></button>
+            <button id="btn-home" class="ui-btn ui-btn--icon ui-btn--ghost icon-btn nav-btn" type="button" data-ui-icon="home" data-i18n-title="Home"></button>
           </div>
         </div>
 
         <div class="toolbar-center">
-          <input id="url-input" type="text" data-i18n-placeholder="Odoo URL" />
+          <input id="url-input" class="ui-toolbar-input" type="text" data-i18n-placeholder="Odoo URL" />
           <span id="url-display" class="url-display hidden"></span>
         </div>
 
         <div class="toolbar-right">
-          <button id="btn-menu" class="icon-btn nav-btn menu-trigger" data-i18n-title="Menu">☰</button>
+          <button id="btn-menu" class="ui-btn ui-btn--icon ui-btn--ghost icon-btn nav-btn menu-trigger" type="button" data-ui-icon="menu" data-i18n-title="Menu"></button>
         </div>
       </header>
 
       <div id="find-bar" class="find-bar hidden">
-        <input id="find-input" type="text" data-i18n-placeholder="Find in page" />
+        <input id="find-input" class="ui-toolbar-input" type="text" data-i18n-placeholder="Find in page" />
         <span id="find-status" class="find-status"></span>
-        <button id="btn-find-prev" class="icon-btn" data-i18n-title="Previous">↑</button>
-        <button id="btn-find-next" class="icon-btn" data-i18n-title="Next">↓</button>
-        <button id="btn-find-close" class="icon-btn" data-i18n-title="Close">✕</button>
+        <button id="btn-find-prev" class="ui-btn ui-btn--icon ui-btn--ghost icon-btn" type="button" data-ui-icon="chevron-up" data-i18n-title="Previous"></button>
+        <button id="btn-find-next" class="ui-btn ui-btn--icon ui-btn--ghost icon-btn" type="button" data-ui-icon="chevron-down" data-i18n-title="Next"></button>
+        <button id="btn-find-close" class="ui-btn ui-btn--icon ui-btn--ghost icon-btn" type="button" data-ui-icon="close" data-i18n-title="Close"></button>
       </div>
 
       <div id="print-banner" class="print-banner hidden" aria-live="polite">
@@ -55,21 +58,17 @@
 
     <div id="menu-backdrop" class="menu-backdrop hidden"></div>
 
-    <aside id="menu-panel" class="menu-drawer hidden" aria-hidden="true">
-      <div class="menu-drawer-header">
-        <span data-i18n>Menu</span>
-        <button id="btn-menu-close" class="icon-btn" data-i18n-title="Close">✕</button>
-      </div>
+    <aside id="menu-panel" class="menu-drawer hidden" role="dialog" aria-modal="true" data-i18n-aria-label="Menu" aria-hidden="true">
       <div class="menu-drawer-scroll-wrap">
         <div id="menu-drawer-scroll" class="menu-drawer-scroll">
           <div class="menu-section">
-            <button class="menu-item tab-only" data-action="new-tab">
-              <span class="menu-item-icon" aria-hidden="true">＋</span>
-              <span class="menu-item-label" data-i18n>New Odoo tab</span>
+            <button class="menu-item ui-nav-item tab-only" data-action="new-tab" type="button">
+              <span class="menu-item-icon ui-nav-item__icon" data-ui-icon="plus" aria-hidden="true"></span>
+              <span class="menu-item-label ui-nav-item__label" data-i18n>New Odoo tab</span>
             </button>
-            <button class="menu-item" data-action="find">
-              <span class="menu-item-icon" aria-hidden="true">⌕</span>
-              <span class="menu-item-label" data-i18n>Find in page</span>
+            <button class="menu-item ui-nav-item" data-action="find" type="button">
+              <span class="menu-item-icon ui-nav-item__icon" data-ui-icon="search" aria-hidden="true"></span>
+              <span class="menu-item-label ui-nav-item__label" data-i18n>Find in page</span>
             </button>
           </div>
 
@@ -87,42 +86,42 @@
           <div class="menu-group tab-only" data-menu-group="history">
             <button type="button" class="menu-group-toggle" aria-expanded="false" aria-controls="menu-group-history">
               <span class="menu-group-leading">
-                <span class="menu-group-icon" aria-hidden="true">↺</span>
+                <span class="menu-group-icon ui-icon" data-ui-icon="history" aria-hidden="true"></span>
                 <span class="menu-group-label" data-i18n>History</span>
               </span>
               <span class="menu-group-chevron" aria-hidden="true">›</span>
             </button>
             <div id="menu-group-history" class="menu-group-body" hidden>
-              <button class="menu-item" data-action="open-history">
-                <span class="menu-item-icon" aria-hidden="true">☰</span>
-                <span class="menu-item-label" data-i18n>Page history</span>
+              <button class="menu-item ui-nav-item" data-action="open-history" type="button">
+                <span class="menu-item-icon ui-nav-item__icon" data-ui-icon="history" aria-hidden="true"></span>
+                <span class="menu-item-label ui-nav-item__label" data-i18n>Page history</span>
               </button>
-              <button class="menu-item" data-action="open-downloads">
-                <span class="menu-item-icon" aria-hidden="true">↓</span>
-                <span class="menu-item-label" data-i18n>Download history</span>
+              <button class="menu-item ui-nav-item" data-action="open-downloads" type="button">
+                <span class="menu-item-icon ui-nav-item__icon" data-ui-icon="download" aria-hidden="true"></span>
+                <span class="menu-item-label ui-nav-item__label" data-i18n>Download history</span>
               </button>
             </div>
           </div>
 
           <div class="menu-section">
-            <button class="menu-item" data-action="open-settings" type="button">
-              <span class="menu-item-icon" aria-hidden="true">⚙</span>
-              <span class="menu-item-label" data-i18n>Settings</span>
+            <button class="menu-item ui-nav-item" data-action="open-settings" type="button">
+              <span class="menu-item-icon ui-nav-item__icon" data-ui-icon="settings" aria-hidden="true"></span>
+              <span class="menu-item-label ui-nav-item__label" data-i18n>Settings</span>
             </button>
           </div>
 
           <div class="menu-group dev-only" data-menu-group="developer">
             <button type="button" class="menu-group-toggle" aria-expanded="false" aria-controls="menu-group-developer">
               <span class="menu-group-leading">
-                <span class="menu-group-icon" aria-hidden="true">{ }</span>
+                <span class="menu-group-icon ui-icon" data-ui-icon="code" aria-hidden="true"></span>
                 <span class="menu-group-label" data-i18n>Developer</span>
               </span>
               <span class="menu-group-chevron" aria-hidden="true">›</span>
             </button>
             <div id="menu-group-developer" class="menu-group-body" hidden>
-              <button class="menu-item" data-action="devtools">
-                <span class="menu-item-icon" aria-hidden="true">⚙</span>
-                <span class="menu-item-label" data-i18n>Developer tools</span>
+              <button class="menu-item ui-nav-item" data-action="devtools" type="button">
+                <span class="menu-item-icon ui-nav-item__icon" data-ui-icon="code" aria-hidden="true"></span>
+                <span class="menu-item-label ui-nav-item__label" data-i18n>Developer tools</span>
               </button>
             </div>
           </div>
@@ -130,7 +129,7 @@
           <div class="menu-group" data-menu-group="help">
             <button type="button" class="menu-group-toggle" aria-expanded="false" aria-controls="menu-group-help">
               <span class="menu-group-leading">
-                <span class="menu-group-icon" aria-hidden="true">?</span>
+                <span class="menu-group-icon ui-icon" data-ui-icon="help" aria-hidden="true"></span>
                 <span class="menu-group-label" data-i18n>Help</span>
               </span>
               <span class="menu-group-chevron" aria-hidden="true">›</span>
@@ -150,16 +149,16 @@
     <div id="settings-modal" class="settings-modal hidden" role="dialog" aria-modal="true" aria-labelledby="settings-modal-title" aria-hidden="true">
       <div class="settings-modal-header">
         <h2 id="settings-modal-title" data-i18n>Settings</h2>
-        <button id="btn-settings-close" class="icon-btn" type="button" data-i18n-title="Close">✕</button>
+        <button id="btn-settings-close" class="ui-btn ui-btn--icon ui-btn--ghost icon-btn" type="button" data-ui-icon="close" data-i18n-title="Close"></button>
       </div>
       <div class="settings-modal-body">
         <div class="settings-modal-layout">
-          <nav class="settings-modal-nav" aria-label="Settings sections">
-            <button type="button" class="settings-nav-item active" data-settings-panel="personalization" data-i18n>Personalization</button>
-            <button type="button" class="settings-nav-item" data-settings-panel="downloads" data-i18n>Downloads</button>
-            <button type="button" class="settings-nav-item" data-settings-panel="permissions" data-i18n>Permissions</button>
-            <button type="button" class="settings-nav-item" data-settings-panel="logs" data-i18n>Logs</button>
-            <button type="button" class="settings-nav-item" data-settings-panel="about" data-i18n>About</button>
+          <nav class="settings-modal-nav ui-side-nav" aria-label="Settings sections">
+            <button type="button" class="settings-nav-item ui-side-nav__item active" data-settings-panel="personalization" data-i18n>Personalization</button>
+            <button type="button" class="settings-nav-item ui-side-nav__item" data-settings-panel="downloads" data-i18n>Downloads</button>
+            <button type="button" class="settings-nav-item ui-side-nav__item" data-settings-panel="permissions" data-i18n>Permissions</button>
+            <button type="button" class="settings-nav-item ui-side-nav__item" data-settings-panel="logs" data-i18n>Logs</button>
+            <button type="button" class="settings-nav-item ui-side-nav__item" data-settings-panel="about" data-i18n>About</button>
           </nav>
           <div class="settings-modal-panels">
             <div id="settings-panel-personalization" class="settings-panel active" data-settings-panel="personalization">
@@ -281,12 +280,13 @@
           <p class="panel-subtitle" data-i18n>Configure your Odoo instances and choose the default one</p>
         </div>
         <form id="home-instance-form" class="home-instance-form">
-          <input id="home-instance-label" class="home-instance-input" type="text" data-i18n-placeholder="Name (e.g. Production)" />
-          <input id="home-instance-url" class="home-instance-input" type="text" data-i18n-placeholder="URL (e.g. https://odoo.company.com)" required />
-          <button id="home-instance-submit" class="home-instance-submit" type="submit" data-i18n>Add instance</button>
+          <input id="home-instance-label" class="home-instance-input ui-input" type="text" data-i18n-placeholder="Name (e.g. Production)" />
+          <input id="home-instance-url" class="home-instance-input ui-input" type="text" data-i18n-placeholder="URL (e.g. https://odoo.company.com)" required />
+          <button id="home-instance-cancel" class="home-instance-cancel ui-btn ui-btn--ghost hidden" type="button" data-i18n>Cancel</button>
+          <button id="home-instance-submit" class="home-instance-submit ui-btn ui-btn--primary" type="submit" data-i18n>Add instance</button>
         </form>
-        <div id="home-instances" class="panel-list"></div>
-        <div id="home-empty" class="panel-empty hidden" data-i18n>No instances configured yet. Add the first one above.</div>
+        <div id="home-instances" class="panel-list ui-list"></div>
+        <div id="home-empty" class="panel-empty ui-empty hidden" data-i18n>No instances configured yet. Add the first one above.</div>
       </section>
 
       <section id="panel-logs" class="panel hidden" data-panel="logs">
@@ -296,7 +296,7 @@
             <p class="panel-subtitle" data-i18n>Application log</p>
           </div>
         </div>
-        <pre id="logs-content" class="logs-content"></pre>
+        <pre id="logs-content" class="logs-content ui-code-block"></pre>
       </section>
 
       <section id="panel-history" class="panel hidden" data-panel="history">
@@ -305,10 +305,10 @@
             <h1 data-i18n>History</h1>
             <p class="panel-subtitle" data-i18n>Recently visited pages</p>
           </div>
-          <button id="btn-history-clear" type="button" class="history-clear-btn" disabled data-i18n>Clear</button>
+          <button id="btn-history-clear" type="button" class="history-clear-btn ui-btn ui-btn--ghost ui-btn--sm" disabled data-i18n>Clear</button>
         </div>
         <div class="history-toolbar">
-          <input id="history-search" type="search" class="history-search" data-i18n-placeholder="Search by title, URL, or instance..." />
+          <input id="history-search" type="search" class="history-search ui-input" data-i18n-placeholder="Search by title, URL, or instance..." />
           <span id="history-count" class="history-count"></span>
         </div>
         <div id="history-list" class="history-list"></div>
@@ -321,13 +321,15 @@
           <h1 data-i18n>Downloads</h1>
           <p class="panel-subtitle" data-i18n>Downloaded files</p>
         </div>
-        <div id="downloads-list" class="panel-list"></div>
-        <div id="downloads-empty" class="panel-empty hidden" data-i18n>No downloads recorded.</div>
+        <div id="downloads-list" class="panel-list ui-list"></div>
+        <div id="downloads-empty" class="panel-empty ui-empty hidden" data-i18n>No downloads recorded.</div>
       </section>
     </main>
 
     <div id="boot-error" class="boot-error hidden"></div>
 
+    <script src="ui/icons.js"></script>
+    <script src="ui/components.js"></script>
     <script src="i18n.js"></script>
     <script src="shell.js"></script>
   </body>

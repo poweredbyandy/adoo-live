@@ -70,6 +70,7 @@ const IPC = {
   UPDATE_INSTALL: 'update:install',
   UPDATE_EVENT: 'update:event',
   APP_FACTORY_RESET: 'app:factoryReset',
+  APP_CONFIRM: 'app:confirm',
 };
 
 module.exports = { IPC };

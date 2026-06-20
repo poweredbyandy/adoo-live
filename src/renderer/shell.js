@@ -143,7 +143,6 @@ const elements = {
   printBanner: document.getElementById('print-banner'),
   printNotices: document.getElementById('print-notices'),
   btnMenu: document.getElementById('btn-menu'),
-  btnMenuClose: document.getElementById('btn-menu-close'),
   menuPanel: document.getElementById('menu-panel'),
   menuBackdrop: document.getElementById('menu-backdrop'),
   btnZoomIn: document.getElementById('btn-zoom-in'),
@@ -183,6 +182,8 @@ const elements = {
   homeInstanceForm: document.getElementById('home-instance-form'),
   homeInstanceLabel: document.getElementById('home-instance-label'),
   homeInstanceUrl: document.getElementById('home-instance-url'),
+  homeInstanceSubmit: document.getElementById('home-instance-submit'),
+  homeInstanceCancel: document.getElementById('home-instance-cancel'),
   logsContent: document.getElementById('logs-content'),
   historyList: document.getElementById('history-list'),
   historyEmpty: document.getElementById('history-empty'),
@@ -221,6 +222,50 @@ let settingsUpdateState = {
 const DRAG_MIME = 'application/x-odoo-kiosk-tab';
 
 let currentState = null;
+let editingInstanceId = null;
+
+async function confirmUserAction(options = {}) {
+  const result = await getApi().confirm({
+    title: options.title || '',
+    message: options.message || '',
+    detail: options.detail || '',
+    confirmLabel: options.confirmLabel || t('OK'),
+    cancelLabel: options.cancelLabel || t('Cancel'),
+    type: options.type || 'question',
+  });
+  return Boolean(result?.confirmed);
+}
+
+function resetHomeInstanceForm() {
+  editingInstanceId = null;
+  if (elements.homeInstanceForm) {
+    elements.homeInstanceForm.reset();
+  }
+  if (elements.homeInstanceSubmit) {
+    elements.homeInstanceSubmit.textContent = t('Add instance');
+  }
+  if (elements.homeInstanceCancel) {
+    elements.homeInstanceCancel.classList.add('hidden');
+  }
+}
+
+function startHomeInstanceEdit(instance) {
+  editingInstanceId = instance.id;
+  if (elements.homeInstanceLabel) {
+    elements.homeInstanceLabel.value = instance.label || instance.host || '';
+  }
+  if (elements.homeInstanceUrl) {
+    elements.homeInstanceUrl.value = instance.baseUrl || '';
+  }
+  if (elements.homeInstanceSubmit) {
+    elements.homeInstanceSubmit.textContent = t('Save changes');
+  }
+  if (elements.homeInstanceCancel) {
+    elements.homeInstanceCancel.classList.remove('hidden');
+  }
+  elements.homeInstanceLabel?.focus();
+  elements.panelHome?.scrollIntoView({ block: 'start', behavior: 'smooth' });
+}
 let lastFindQuery = '';
 let findInputTimer = null;
 let dragSession = {
@@ -367,41 +412,16 @@ function openHistoryEntry(entry) {
 }
 
 function createHistoryItem(entry) {
-  const item = document.createElement('button');
-  item.type = 'button';
-  item.className = 'history-item';
-  item.title = entry.url;
-
-  const main = document.createElement('span');
-  main.className = 'history-item-main';
-
-  const top = document.createElement('span');
-  top.className = 'history-item-top';
-
-  const host = document.createElement('span');
-  host.className = 'history-item-host';
-  host.textContent = entry.host || 'web';
-
-  const title = document.createElement('span');
-  title.className = 'history-item-title';
-  title.textContent = entry.title || entry.url;
-
-  const path = document.createElement('span');
-  path.className = 'history-item-path';
-  path.textContent = formatHistoryPath(entry.url);
-
-  const time = document.createElement('span');
-  time.className = 'history-item-time';
-  time.textContent = formatRelativeHistoryDate(entry.visitedAt);
-
-  top.appendChild(host);
-  top.appendChild(title);
-  main.appendChild(top);
-  main.appendChild(path);
-  item.appendChild(main);
-  item.appendChild(time);
-  item.addEventListener('click', () => openHistoryEntry(entry));
-  return item;
+  const titleSpan = UI.el('span', 'ui-list__title', {}, [entry.title || entry.url]);
+  return UI.createListRow({
+    interactive: true,
+    title: entry.url,
+    primary: [UI.createBadge(entry.host || 'web'), titleSpan],
+    meta: formatHistoryPath(entry.url),
+    aside: formatRelativeHistoryDate(entry.visitedAt),
+    className: 'history-item ui-list__item ui-list__item--interactive',
+    onClick: () => openHistoryEntry(entry),
+  });
 }
 
 function getModeLabel(mode) {
@@ -448,6 +468,7 @@ function updateModeSwitches(activeMode) {
 function applyMenuVisibility(menuOpen) {
   const isOpen = Boolean(menuOpen);
   elements.menuPanel.classList.toggle('hidden', !isOpen);
+  elements.menuPanel.classList.toggle('is-open', isOpen);
   elements.menuBackdrop.classList.toggle('hidden', !isOpen);
   elements.menuPanel.setAttribute('aria-hidden', String(!isOpen));
   if (isOpen) {
@@ -678,57 +699,61 @@ function renderHomeInstances(instanceData) {
     const actions = document.createElement('div');
     actions.className = 'instance-actions';
 
-    const defaultButton = document.createElement('button');
-    defaultButton.type = 'button';
-    defaultButton.className = `instance-action-btn${instance.id === defaultInstanceId ? ' active' : ''}`;
-    defaultButton.title = t('Mark as default');
-    defaultButton.textContent = '★';
-    defaultButton.addEventListener('click', (event) => {
-      event.stopPropagation();
-      runAction((api) => api.setDefaultInstance(instance.id), {
-        label: `Predeterminada: ${instance.label || instance.host}`,
-        describe: (snapshot) => `url=${snapshot.defaultBaseUrl}`,
-      });
+    const defaultButton = UI.createButton({
+      variant: 'ghost',
+      icon: 'star',
+      title: t('Mark as default'),
+      className: `instance-action-btn${instance.id === defaultInstanceId ? ' active' : ''}`,
+      disabled: instance.id === defaultInstanceId,
+      onClick: (event) => {
+        event.stopPropagation();
+        if (instance.id === defaultInstanceId) {
+          return;
+        }
+        runAction((api) => api.setDefaultInstance(instance.id), {
+          label: `Predeterminada: ${instance.label || instance.host}`,
+          describe: (snapshot) => `url=${snapshot.defaultBaseUrl}`,
+        });
+      },
     });
 
-    const editButton = document.createElement('button');
-    editButton.type = 'button';
-    editButton.className = 'instance-action-btn';
-    editButton.title = t('Edit');
-    editButton.textContent = '✎';
-    editButton.addEventListener('click', (event) => {
-      event.stopPropagation();
-      const nextLabel = window.prompt('Nombre de la instancia', instance.label || instance.host);
-      if (nextLabel === null) {
-        return;
-      }
-      const nextUrl = window.prompt('URL de la instancia', instance.baseUrl);
-      if (nextUrl === null) {
-        return;
-      }
-      runAction((api) => api.updateInstance(instance.id, { label: nextLabel, url: nextUrl }), {
-        label: `Editar instancia: ${instance.label || instance.host}`,
-        describe: (snapshot) => `${snapshot.items.length} instancias`,
-      });
+    const editButton = UI.createButton({
+      variant: 'ghost',
+      icon: 'edit',
+      title: t('Edit'),
+      className: 'instance-action-btn',
+      onClick: (event) => {
+        event.stopPropagation();
+        startHomeInstanceEdit(instance);
+      },
     });
 
-    const deleteButton = document.createElement('button');
-    deleteButton.type = 'button';
-    deleteButton.className = 'instance-action-btn danger';
-    deleteButton.title = t('Delete');
-    deleteButton.textContent = '×';
-    deleteButton.addEventListener('click', (event) => {
-      event.stopPropagation();
-      const confirmed = window.confirm(t('Delete instance "%(name)s"?', {
-        name: instance.label || instance.host,
-      }));
-      if (!confirmed) {
-        return;
-      }
-      runAction((api) => api.removeInstance(instance.id), {
-        label: `Eliminar instancia: ${instance.label || instance.host}`,
-        describe: (snapshot) => `${snapshot.items.length} instancias`,
-      });
+    const deleteButton = UI.createButton({
+      variant: 'danger',
+      icon: 'trash',
+      title: t('Delete'),
+      className: 'instance-action-btn danger',
+      onClick: async (event) => {
+        event.stopPropagation();
+        const confirmed = await confirmUserAction({
+          title: t('Delete'),
+          message: t('Delete instance "%(name)s"?', {
+            name: instance.label || instance.host,
+          }),
+          confirmLabel: t('Delete'),
+          type: 'warning',
+        });
+        if (!confirmed) {
+          return;
+        }
+        if (editingInstanceId === instance.id) {
+          resetHomeInstanceForm();
+        }
+        runAction((api) => api.removeInstance(instance.id), {
+          label: `Eliminar instancia: ${instance.label || instance.host}`,
+          describe: (snapshot) => `${snapshot.items.length} instancias`,
+        });
+      },
     });
 
     actions.appendChild(defaultButton);
@@ -770,16 +795,10 @@ function renderHistory(pageHistory) {
   }
 
   groups.forEach((group) => {
-    const section = document.createElement('section');
-    section.className = 'history-group';
-
-    const label = document.createElement('h2');
-    label.className = 'history-group-label';
-    label.textContent = t(group.label);
-    section.appendChild(label);
-
+    const { section, list } = UI.createListSection(t(group.label));
+    list.classList.add('ui-list');
     group.entries.forEach((entry) => {
-      section.appendChild(createHistoryItem(entry));
+      list.appendChild(createHistoryItem(entry));
     });
     elements.historyList.appendChild(section);
   });
@@ -797,7 +816,12 @@ function bindHistoryPanel() {
 
   if (elements.btnHistoryClear) {
     elements.btnHistoryClear.addEventListener('click', async () => {
-      const confirmed = window.confirm(t('Clear all page history?'));
+      const confirmed = await confirmUserAction({
+        title: t('History'),
+        message: t('Clear all page history?'),
+        confirmLabel: t('Clear'),
+        type: 'warning',
+      });
       if (!confirmed) {
         return;
       }
@@ -818,8 +842,6 @@ function renderDownloads(downloads) {
   const list = downloads || [];
   elements.downloadsEmpty.classList.toggle('hidden', list.length > 0);
   list.forEach((entry) => {
-    const item = document.createElement('div');
-    item.className = 'download-item';
     const stateLabel = entry.state === 'completed'
       ? t('Completed')
       : entry.state === 'cancelled'
@@ -829,67 +851,68 @@ function renderDownloads(downloads) {
           : t('In progress');
     const hasFile = Boolean(entry.path) && entry.state === 'completed';
 
-    const main = document.createElement('div');
-    main.className = 'download-item-main';
-    main.innerHTML = `
-      <span class="panel-item-title">${entry.filename || t('Untitled')}</span>
-      <span class="panel-item-meta">${entry.path || entry.url || ''}</span>
-      <span class="panel-item-date">${stateLabel} · ${formatDate(entry.completedAt || entry.startedAt)}</span>
-    `;
-    item.appendChild(main);
-
-    const actions = document.createElement('div');
-    actions.className = 'download-item-actions';
-
-    const openFileBtn = document.createElement('button');
-    openFileBtn.type = 'button';
-    openFileBtn.className = 'download-action-btn';
-    openFileBtn.textContent = '↗';
-    openFileBtn.title = t('Open file');
-    openFileBtn.setAttribute('aria-label', t('Open file'));
-    openFileBtn.disabled = !hasFile;
-    openFileBtn.addEventListener('click', () => {
-      runAction((api) => api.openDownloadFile(entry.id), {
-        label: t('Open file'),
-        describe: () => entry.filename || entry.path,
-      });
+    const openFileBtn = UI.createButton({
+      variant: 'ghost',
+      icon: 'external-link',
+      title: t('Open file'),
+      ariaLabel: t('Open file'),
+      className: 'download-action-btn',
+      disabled: !hasFile,
+      onClick: () => {
+        runAction((api) => api.openDownloadFile(entry.id), {
+          label: t('Open file'),
+          describe: () => entry.filename || entry.path,
+        });
+      },
     });
 
-    const openFolderBtn = document.createElement('button');
-    openFolderBtn.type = 'button';
-    openFolderBtn.className = 'download-action-btn';
-    openFolderBtn.textContent = '▤';
-    openFolderBtn.title = t('Open folder');
-    openFolderBtn.setAttribute('aria-label', t('Open folder'));
-    openFolderBtn.disabled = !hasFile;
-    openFolderBtn.addEventListener('click', () => {
-      runAction((api) => api.openDownloadFolder(entry.id), {
-        label: t('Open folder'),
-        describe: () => entry.path || t('Downloads'),
-      });
+    const openFolderBtn = UI.createButton({
+      variant: 'ghost',
+      icon: 'folder',
+      title: t('Open folder'),
+      ariaLabel: t('Open folder'),
+      className: 'download-action-btn',
+      disabled: !hasFile,
+      onClick: () => {
+        runAction((api) => api.openDownloadFolder(entry.id), {
+          label: t('Open folder'),
+          describe: () => entry.path || t('Downloads'),
+        });
+      },
     });
 
-    const deleteBtn = document.createElement('button');
-    deleteBtn.type = 'button';
-    deleteBtn.className = 'download-action-btn is-danger';
-    deleteBtn.textContent = '✕';
-    deleteBtn.title = t('Delete file');
-    deleteBtn.setAttribute('aria-label', t('Delete file'));
-    deleteBtn.disabled = !hasFile;
-    deleteBtn.addEventListener('click', async () => {
-      const confirmed = window.confirm(t('Delete this downloaded file?'));
-      if (!confirmed) {
-        return;
-      }
-      await runAction((api) => api.removeDownload(entry.id, true), {
-        label: t('Delete file'),
-        describe: () => entry.filename || entry.path,
-      });
+    const deleteBtn = UI.createButton({
+      variant: 'danger',
+      icon: 'trash',
+      title: t('Delete file'),
+      ariaLabel: t('Delete file'),
+      className: 'download-action-btn is-danger',
+      disabled: !hasFile,
+      onClick: async () => {
+        const confirmed = await confirmUserAction({
+          title: t('Delete'),
+          message: t('Delete this downloaded file?'),
+          confirmLabel: t('Delete'),
+          type: 'warning',
+        });
+        if (!confirmed) {
+          return;
+        }
+        await runAction((api) => api.removeDownload(entry.id, true), {
+          label: t('Delete file'),
+          describe: () => entry.filename || entry.path,
+        });
+      },
     });
 
-    actions.append(openFileBtn, openFolderBtn, deleteBtn);
-    item.appendChild(actions);
-    elements.downloadsList.appendChild(item);
+    const row = UI.createListRow({
+      titleText: entry.filename || t('Untitled'),
+      meta: entry.path || entry.url || '',
+      caption: `${stateLabel} · ${formatDate(entry.completedAt || entry.startedAt)}`,
+      actions: [openFileBtn, openFolderBtn, deleteBtn],
+      className: 'download-item ui-list__item',
+    });
+    elements.downloadsList.appendChild(row);
   });
 }
 
@@ -1372,15 +1395,27 @@ function bindHomeInstanceForm() {
       return;
     }
     try {
-      await runAction((api) => api.addInstance(label, url), {
-        label: t('Add Odoo instance'),
-        describe: (snapshot) => `${snapshot.items.length} instancias, predeterminada=${snapshot.defaultBaseUrl}`,
-      });
-      elements.homeInstanceForm.reset();
+      if (editingInstanceId) {
+        await runAction((api) => api.updateInstance(editingInstanceId, { label, url }), {
+          label: t('Save changes'),
+          describe: (snapshot) => `${snapshot.items.length} instancias`,
+        });
+      } else {
+        await runAction((api) => api.addInstance(label, url), {
+          label: t('Add Odoo instance'),
+          describe: (snapshot) => `${snapshot.items.length} instancias, predeterminada=${snapshot.defaultBaseUrl}`,
+        });
+      }
+      resetHomeInstanceForm();
     } catch {
       void 0;
     }
   });
+  if (elements.homeInstanceCancel) {
+    elements.homeInstanceCancel.addEventListener('click', () => {
+      resetHomeInstanceForm();
+    });
+  }
 }
 
 function showPanel(type) {
@@ -1405,7 +1440,7 @@ function renderKeymap(keymap) {
     item.className = 'keymap-item';
     item.innerHTML = `
       <span class="keymap-label">${entry.label}</span>
-      <kbd class="keymap-keys">${entry.display}</kbd>
+      <kbd class="keymap-keys ui-kbd">${entry.display}</kbd>
     `;
     elements.keymapList.appendChild(item);
   });
@@ -1504,6 +1539,7 @@ function applyOverlayState(state) {
   if (state.platform) {
     elements.body.classList.add(`platform-${state.platform}`);
   }
+  applyChromeLayout(state);
   updateModeSwitches(state.mode);
   elements.btnZoomReset.textContent = zoomToPercent(state.zoomLevel);
   applyPanelZoom(state.zoomLevel, state.isOdooTabActive);
@@ -2226,23 +2262,6 @@ function bindMenuHandlers() {
   bindZoomControl(elements.btnZoomOut, (api) => api.setZoom(-0.5), 'Zoom −');
   bindZoomControl(elements.btnZoomReset, (api) => api.resetZoom(), 'Restablecer zoom');
 
-  if (elements.btnMenuClose) {
-    let menuCloseLock = false;
-    const handleMenuClose = (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      if (menuCloseLock) {
-        return;
-      }
-      menuCloseLock = true;
-      closeMenu();
-      window.setTimeout(() => {
-        menuCloseLock = false;
-      }, 250);
-    };
-    elements.btnMenuClose.addEventListener('pointerdown', handleMenuClose);
-    elements.btnMenuClose.addEventListener('click', handleMenuClose);
-  }
   if (elements.menuBackdrop) {
     elements.menuBackdrop.addEventListener('click', (event) => {
       event.preventDefault();
@@ -2254,6 +2273,10 @@ function bindMenuHandlers() {
 
 function boot() {
   try {
+    if (!window.UI || !window.UIIcons) {
+      throw new Error('UI modules failed to load (ui/icons.js, ui/components.js).');
+    }
+    window.UIIcons.hydrateIcons();
     const api = getApi();
 
     setupMenuDrawerScrollbar();

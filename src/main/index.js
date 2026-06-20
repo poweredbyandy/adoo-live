@@ -22,7 +22,9 @@ let appBootstrapped = false;
 const gotLock = app.requestSingleInstanceLock();
 app.setName(APP_DISPLAY_NAME);
 if (!gotLock) {
+  console.log('[adoo IoT] Ya hay otra instancia en ejecución. Cierra la ventana existente o termina el proceso Electron.');
   app.quit();
+  process.exit(0);
 }
 
 function bootstrapApp() {

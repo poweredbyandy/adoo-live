@@ -5,6 +5,24 @@ const { getDialogParent } = require('../permission-service');
 const { t } = require('../../i18n');
 
 function registerAppHandlers(ipcMain, windowRegistry, resolveWindowManager, primaryManager) {
+  ipcMain.handle(IPC.APP_CONFIRM, async (event, payload = {}) => {
+    const windowManager = resolveWindowManager(windowRegistry, event, primaryManager());
+    const browserWindow = windowManager?.window || getDialogParent(windowRegistry);
+    const confirmLabel = payload.confirmLabel || t('OK');
+    const cancelLabel = payload.cancelLabel || t('Cancel');
+    const result = await dialog.showMessageBox(browserWindow || undefined, {
+      type: payload.type || 'question',
+      buttons: [confirmLabel, cancelLabel],
+      defaultId: 1,
+      cancelId: 1,
+      noLink: true,
+      title: payload.title || '',
+      message: payload.message || '',
+      detail: payload.detail || '',
+    });
+    return { confirmed: result.response === 0 };
+  });
+
   ipcMain.handle(IPC.APP_FACTORY_RESET, async (event) => {
     const windowManager = resolveWindowManager(windowRegistry, event, primaryManager());
     const browserWindow = windowManager?.window || getDialogParent(windowRegistry);

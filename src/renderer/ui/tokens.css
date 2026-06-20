@@ -1,0 +1,61 @@
+:root {
+  --ui-font: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+  --ui-font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  --ui-bg: #121214;
+  --ui-bg-elevated: #18181b;
+  --ui-surface: #1c1c1f;
+  --ui-surface-hover: rgba(255, 255, 255, 0.04);
+  --ui-surface-active: rgba(255, 255, 255, 0.07);
+
+  --ui-border: rgba(255, 255, 255, 0.08);
+  --ui-border-strong: rgba(255, 255, 255, 0.14);
+
+  --ui-text: #f4f4f5;
+  --ui-text-secondary: #a1a1aa;
+  --ui-text-tertiary: #71717a;
+
+  --ui-accent: #6366f1;
+  --ui-accent-hover: #818cf8;
+  --ui-accent-muted: rgba(99, 102, 241, 0.14);
+  --ui-success: #22c55e;
+  --ui-warning: #fbbf24;
+  --ui-danger: #ef4444;
+
+  --ui-radius-sm: 6px;
+  --ui-radius-md: 8px;
+  --ui-radius-lg: 12px;
+
+  --ui-space-1: 4px;
+  --ui-space-2: 8px;
+  --ui-space-3: 12px;
+  --ui-space-4: 16px;
+  --ui-space-5: 20px;
+  --ui-space-6: 24px;
+
+  --ui-text-xs: 11px;
+  --ui-text-sm: 12px;
+  --ui-text-base: 13px;
+  --ui-text-md: 14px;
+  --ui-text-lg: 16px;
+  --ui-text-xl: 20px;
+
+  --ui-shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.45);
+
+  --bg: var(--ui-bg);
+  --surface: var(--ui-surface);
+  --border: var(--ui-border-strong);
+  --text: var(--ui-text);
+  --muted: var(--ui-text-secondary);
+  --accent: var(--ui-accent);
+  --accent-active: #4f46e5;
+  --danger: var(--ui-danger);
+
+  --titlebar-height: 38px;
+  --toolbar-height: 40px;
+  --menu-drawer-top: calc(var(--titlebar-height) + var(--toolbar-height));
+  --menu-popover-gap: 6px;
+  --menu-popover-inset-right: 10px;
+  --menu-popover-width: 280px;
+  --menu-popover-max-height: min(520px, calc(100vh - var(--menu-drawer-top) - 20px));
+}
