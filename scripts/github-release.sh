@@ -74,15 +74,16 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-GITHUB_REPO="$(node -p "
+GITHUB_REPO="$(node -e "
   const pkg = require('./package.json');
   const publish = pkg.build && pkg.build.publish;
   if (publish && publish.owner && publish.repo) {
-    process.stdout.write(publish.owner + '/' + publish.repo);
+    console.log(publish.owner + '/' + publish.repo);
   } else {
-    process.stdout.write('${DEFAULT_REPO}');
+    console.log('${DEFAULT_REPO}');
   }
 ")"
+GITHUB_REPO="${GITHUB_REPO//$'\n'/}"
 
 if [[ -z "$VERSION" ]]; then
   VERSION="$(node -p "require('./package.json').version")"
