@@ -3,7 +3,11 @@
   "version": "1.0.0-beta.1",
   "description": "adoo IoT",
   "license": "MIT",
-  "author": "andyengit",
+  "author": {
+    "name": "andyengit",
+    "email": "andyengit@users.noreply.github.com"
+  },
+  "maintainer": "andyengit <andyengit@users.noreply.github.com>",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
@@ -68,7 +72,10 @@
         "AppImage",
         "deb"
       ],
-      "category": "Office"
+      "category": "Office",
+      "maintainer": "andyengit <andyengit@users.noreply.github.com>",
+      "desktopName": "adoo-iot",
+      "syncDesktopName": true
     }
   }
 }
