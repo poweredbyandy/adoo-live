@@ -7,6 +7,8 @@ const { fetchDeviceSpec, fetchKioskManifest } = require('./kiosk-core');
 const { startRemotePrinting, stopRemotePrinting } = require('./kiosk-printing-service');
 const { appLogger } = require('./logger');
 const { t } = require('../i18n');
+const { loadConfig } = require('./config');
+const { PERMISSION_TYPES, isPermissionGranted } = require('./permission-service');
 
 const managers = new Map();
 
@@ -104,7 +106,10 @@ class KioskDeviceManager {
 
   async buildPayload() {
     const identity = getDeviceIdentity();
-    const printers = await getPrintersPayload(this.webContents);
+    const config = loadConfig();
+    const printers = isPermissionGranted(config, PERMISSION_TYPES.PRINTERS)
+      ? await getPrintersPayload(this.webContents)
+      : [];
     return {
       device_uid: identity.device_uid,
       hostname: identity.hostname,
@@ -161,6 +166,10 @@ class KioskDeviceManager {
   }
 
   async checkPrintersChanged() {
+    const config = loadConfig();
+    if (!isPermissionGranted(config, PERMISSION_TYPES.PRINTERS)) {
+      return false;
+    }
     const printers = await getPrintersPayload(this.webContents);
     const nextFingerprint = fingerprintPrinters(printers);
     if (!this.printersFingerprint) {

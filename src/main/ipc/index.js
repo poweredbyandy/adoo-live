@@ -10,6 +10,9 @@ const { registerUsbHandlers } = require('./usb');
 const { registerPrinterHandlers } = require('./printer');
 const { registerPbaKioskHandlers } = require('./pba-kiosk');
 const { registerUpdateHandlers } = require('./update');
+const { registerDownloadHandlers } = require('./downloads');
+const { registerPermissionHandlers } = require('./permissions');
+const { registerAppHandlers } = require('./app');
 const {
   getInstancesSnapshot,
   addInstance,
@@ -233,6 +236,20 @@ function registerIpcHandlers(ipcMain, windowRegistry, modeManager) {
     return windowManager.getState();
   }));
 
+  ipcMain.handle(IPC.SHELL_SET_SETTINGS_OPEN, wrapHandler((event, open) => {
+    const windowManager = resolveWindowManager(windowRegistry, event, primaryManager());
+    windowManager.setSettingsOpen(open);
+    return windowManager.getState();
+  }));
+
+  ipcMain.handle(IPC.SHELL_SEND_ACTION, wrapHandler((event, payload) => {
+    const windowManager = resolveWindowManager(windowRegistry, event, primaryManager());
+    if (windowManager?.window && !windowManager.window.isDestroyed()) {
+      windowManager.window.webContents.send('shell:action', { action: payload?.action });
+    }
+    return true;
+  }));
+
   ipcMain.handle(IPC.SHELL_PRINT_NOTICE_DISMISS, wrapHandler((event, noticeId) => {
     const windowManager = resolveWindowManager(windowRegistry, event, primaryManager());
     windowManager.dismissPrintNotice(String(noticeId || ''));
@@ -245,7 +262,16 @@ function registerIpcHandlers(ipcMain, windowRegistry, modeManager) {
     windowRegistry.broadcastState();
     return true;
   }));
-  ipcMain.handle(IPC.LOG_EXPORT, wrapHandler(() => appLogger.exportToFile()));
+  ipcMain.handle(IPC.LOG_EXPORT, wrapHandler(async () => {
+    const { ensurePermission, PERMISSION_TYPES, getDialogParent } = require('../permission-service');
+    const { t } = require('../../i18n');
+    await ensurePermission(windowRegistry, PERMISSION_TYPES.FILES, {
+      browserWindow: getDialogParent(windowRegistry),
+      source: 'log-export',
+      actionLabel: t('Export logs to file'),
+    });
+    return appLogger.exportToFile();
+  }));
   ipcMain.handle(IPC.LOG_APPEND, wrapHandler((_event, payload) => {
     appLogger.add(payload?.level || 'info', payload?.source || 'shell', payload?.message || '', payload?.detail);
     windowRegistry.broadcastState();
@@ -335,11 +361,14 @@ function registerIpcHandlers(ipcMain, windowRegistry, modeManager) {
 
   registerNotificationHandlers(ipcMain);
   registerPushHandlers(ipcMain);
-  registerSerialHandlers(ipcMain, logVerbose);
-  registerUsbHandlers(ipcMain, logVerbose);
-  registerPrinterHandlers(ipcMain, () => primaryManager()?.getActiveWebContents() || null, logVerbose);
+  registerSerialHandlers(ipcMain, windowRegistry, logVerbose);
+  registerUsbHandlers(ipcMain, windowRegistry, logVerbose);
+  registerPrinterHandlers(ipcMain, windowRegistry, () => primaryManager()?.getActiveWebContents() || null, logVerbose);
   registerPbaKioskHandlers(ipcMain);
   registerUpdateHandlers(ipcMain);
+  registerDownloadHandlers(ipcMain, windowRegistry, resolveWindowManager, primaryManager);
+  registerPermissionHandlers(ipcMain, windowRegistry);
+  registerAppHandlers(ipcMain, windowRegistry, resolveWindowManager, primaryManager);
 
   return () => {
     closeAllSerialPorts();

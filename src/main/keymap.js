@@ -1,5 +1,5 @@
-const { globalShortcut } = require('electron');
 const { KEYMAP } = require('../shared/keymap');
+const { matchesAccelerator } = require('../shared/shortcut-input');
 const { consumeOdooDebugLevelFromShortcut } = require('../shared/odoo-debug-shortcut');
 const { appLogger } = require('./logger');
 const { t } = require('../i18n');
@@ -39,8 +39,8 @@ function handleOdooDebugShortcut(windowRegistry) {
   applyOdooDebug(windowRegistry);
 }
 
-function registerKeymap(windowRegistry, modeManager) {
-  const handlers = {
+function createKeymapHandlers(windowRegistry) {
+  return {
     toggleOdooDebug: () => applyOdooDebug(windowRegistry),
     toggleFind: () => {
       const focused = windowRegistry.getFocused();
@@ -59,22 +59,51 @@ function registerKeymap(windowRegistry, modeManager) {
     'setMode:kiosk': () => sendShellAction(windowRegistry, 'setMode:kiosk'),
     'setMode:free': () => sendShellAction(windowRegistry, 'setMode:free'),
   };
+}
 
-  KEYMAP.forEach((entry) => {
-    if (entry.action === 'toggleOdooDebug' && process.platform === 'darwin') {
+function attachKeymapShortcuts(windowRegistry, webContents) {
+  if (!webContents || webContents._odooKioskKeymapAttached) {
+    return;
+  }
+  webContents._odooKioskKeymapAttached = true;
+  const handlers = createKeymapHandlers(windowRegistry);
+
+  webContents.on('before-input-event', (event, input) => {
+    for (const entry of KEYMAP) {
+      if (!matchesAccelerator(input, entry.accelerator)) {
+        continue;
+      }
+      const handler = handlers[entry.action];
+      if (!handler) {
+        continue;
+      }
+      event.preventDefault();
+      handler();
       return;
-    }
-    const handler = handlers[entry.action];
-    if (!handler) {
-      return;
-    }
-    const registered = globalShortcut.register(entry.accelerator, handler);
-    if (!registered) {
-      appLogger.add('warn', 'keymap', t('Could not register shortcut'), entry.accelerator);
     }
   });
+}
 
+function registerKeymap(windowRegistry) {
+  windowRegistry.getAll().forEach((manager) => {
+    if (manager.window?.webContents) {
+      attachKeymapShortcuts(windowRegistry, manager.window.webContents);
+    }
+    manager.tabs?.forEach((tab) => {
+      if (tab.view?.webContents) {
+        attachKeymapShortcuts(windowRegistry, tab.view.webContents);
+      }
+    });
+    if (manager.menuOverlayView?.webContents) {
+      attachKeymapShortcuts(windowRegistry, manager.menuOverlayView.webContents);
+    }
+  });
   appLogger.add('info', 'keymap', t('Shortcuts registered'), String(KEYMAP.length));
 }
 
-module.exports = { registerKeymap, handleOdooDebugShortcut, applyOdooDebug };
+module.exports = {
+  registerKeymap,
+  attachKeymapShortcuts,
+  handleOdooDebugShortcut,
+  applyOdooDebug,
+};

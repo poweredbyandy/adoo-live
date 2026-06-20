@@ -34,4 +34,30 @@ describe('shortcut-input', () => {
       isAutoRepeat: false,
     })).toBe(false);
   });
+
+  it('detecta CommandOrControl+F', () => {
+    const { matchesAccelerator } = require('../../src/shared/shortcut-input');
+    expect(matchesAccelerator({
+      type: 'keyDown',
+      key: 'f',
+      meta: true,
+      shift: false,
+      alt: false,
+      control: false,
+      isAutoRepeat: false,
+    }, 'CommandOrControl+F', 'darwin')).toBe(true);
+  });
+
+  it('no detecta CommandOrControl+F sin meta/control', () => {
+    const { matchesAccelerator } = require('../../src/shared/shortcut-input');
+    expect(matchesAccelerator({
+      type: 'keyDown',
+      key: 'f',
+      meta: false,
+      shift: false,
+      alt: false,
+      control: false,
+      isAutoRepeat: false,
+    }, 'CommandOrControl+F', 'darwin')).toBe(false);
+  });
 });

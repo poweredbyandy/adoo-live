@@ -1,8 +1,19 @@
 const path = require('path');
 const { session } = require('electron');
 const { SESSION_PARTITION } = require('../shared/constants');
+const { loadConfig } = require('./config');
+const {
+  PERMISSION_TYPES,
+  isPermissionGranted,
+  ensurePermission,
+  isCameraPermission,
+  getDialogParent,
+} = require('./permission-service');
+const { t } = require('../i18n');
 
 const PRELOAD_DIR = path.join(__dirname, '../preload');
+
+const BASE_ALLOWED_PERMISSIONS = new Set(['notifications', 'clipboard-read', 'push']);
 
 function getOdooSession() {
   return session.fromPartition(SESSION_PARTITION);
@@ -30,17 +41,34 @@ function registerOdooPageShims(odooSession) {
   });
 }
 
-function configureSession() {
+function configureSession(windowRegistry) {
   const odooSession = getOdooSession();
 
-  const allowedPermissions = new Set(['notifications', 'media', 'clipboard-read', 'push']);
+  odooSession.setPermissionRequestHandler((webContents, permission, callback) => {
+    if (isCameraPermission(permission)) {
+      const config = loadConfig();
+      if (isPermissionGranted(config, PERMISSION_TYPES.CAMERA)) {
+        callback(true);
+        return;
+      }
+      ensurePermission(windowRegistry, PERMISSION_TYPES.CAMERA, {
+        browserWindow: getDialogParent(windowRegistry),
+        source: 'web-camera',
+        actionLabel: t('Camera access'),
+      })
+        .then((allowed) => callback(allowed))
+        .catch(() => callback(false));
+      return;
+    }
 
-  odooSession.setPermissionRequestHandler((_webContents, permission, callback) => {
-    callback(allowedPermissions.has(permission));
+    callback(BASE_ALLOWED_PERMISSIONS.has(permission));
   });
 
   odooSession.setPermissionCheckHandler((_webContents, permission) => {
-    return allowedPermissions.has(permission);
+    if (isCameraPermission(permission)) {
+      return isPermissionGranted(loadConfig(), PERMISSION_TYPES.CAMERA);
+    }
+    return BASE_ALLOWED_PERMISSIONS.has(permission);
   });
 
   registerOdooPageShims(odooSession);

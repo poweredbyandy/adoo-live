@@ -1,7 +1,8 @@
 const fs = require('fs');
 const path = require('path');
 const { BrowserWindow, WebContentsView } = require('electron');
-const { TOOLBAR_HEIGHT, TITLEBAR_HEIGHT } = require('../shared/constants');
+const { TOOLBAR_HEIGHT, TITLEBAR_HEIGHT, MIN_ZOOM_LEVEL, MAX_ZOOM_LEVEL } = require('../shared/constants');
+const { resolveDownloadSavePath } = require('./download-service');
 const { getBrowserWindowOptions, applyWindowChrome } = require('./window-chrome');
 const { TAB_TYPES, PANEL_TITLES, SINGLETON_PANEL_TYPES } = require('../shared/tab-types');
 const { IPC } = require('../shared/ipc-channels');
@@ -15,12 +16,13 @@ const { historyStore } = require('./history-store');
 const { getKeymapForDisplay } = require('../shared/keymap');
 const { getDefaultBaseUrl, getInstancesSnapshot } = require('./instances');
 const { buildOdooDebugReloadUrl } = require('../shared/odoo-debug');
-const { attachInputShortcuts } = require('./input-shortcuts');
+const { attachKeymapShortcuts } = require('./keymap');
 const { attachContextMenu } = require('./context-menu');
 const { checkKioskCompatibilityFromWebContents } = require('./kiosk-compatibility');
 const { isNavigableOdooUrl } = require('../shared/kiosk-compatibility');
 const { attachKioskDeviceManager, stopKioskDeviceSession } = require('./kiosk-device-service');
 const { t, getLocale, getCatalog } = require('../i18n');
+const { getPermissionsSnapshot } = require('./permission-service');
 
 const FIND_BAR_HEIGHT = 42;
 const PRINT_BANNER_HEIGHT = 40;
@@ -70,6 +72,7 @@ class WindowManager {
     this.findRequestId = 0;
     this.findBarVisible = false;
     this.menuOpen = false;
+    this.settingsOpen = false;
     this.menuOverlayView = null;
     this.menuOverlayReady = null;
     this.menuOverlayToken = 0;
@@ -85,7 +88,30 @@ class WindowManager {
       return;
     }
     downloadsConfigured = true;
-    getOdooSession().on('will-download', (_event, item) => {
+    getOdooSession().on('will-download', async (_event, item) => {
+      const { windowRegistry } = require('./window-registry');
+      const { PERMISSION_TYPES, ensurePermission, getDialogParent, isPermissionGranted } = require('./permission-service');
+      const { loadConfig } = require('./config');
+      const { t } = require('../i18n');
+
+      const config = loadConfig();
+      if (!isPermissionGranted(config, PERMISSION_TYPES.FILES)) {
+        try {
+          await ensurePermission(windowRegistry, PERMISSION_TYPES.FILES, {
+            browserWindow: getDialogParent(windowRegistry),
+            source: 'will-download',
+            actionLabel: t('Save downloaded files'),
+          });
+        } catch {
+          item.cancel();
+          return;
+        }
+      }
+
+      const effectiveConfig = loadConfig();
+      const savePath = resolveDownloadSavePath(effectiveConfig, item.getFilename());
+      fs.mkdirSync(path.dirname(savePath), { recursive: true });
+      item.setSavePath(savePath);
       const entry = historyStore.addDownload({
         filename: item.getFilename(),
         url: item.getURL(),
@@ -101,10 +127,8 @@ class WindowManager {
         if (updated) {
           showDownloadNotification(updated, state);
         }
-        const { windowRegistry } = require('./window-registry');
         windowRegistry.broadcastState();
       });
-      const { windowRegistry } = require('./window-registry');
       windowRegistry.broadcastState();
     });
   }
@@ -225,7 +249,7 @@ class WindowManager {
     applyWindowChrome(this.window);
 
     attachWebContentsLogging(this.window.webContents, 'shell');
-    attachInputShortcuts(this.registry, this.window.webContents);
+    attachKeymapShortcuts(this.registry, this.window.webContents);
     attachContextMenu(this.window.webContents, {
       getWindow: () => this.window,
     });
@@ -375,7 +399,7 @@ class WindowManager {
       this.broadcastState();
     });
     this.attachCompatibilityListener(view);
-    attachInputShortcuts(this.registry, view.webContents);
+    attachKeymapShortcuts(this.registry, view.webContents);
     attachContextMenu(view.webContents, {
       getWindow: () => this.window,
       showNavigation: true,
@@ -385,24 +409,6 @@ class WindowManager {
       goForward: () => goForward(view.webContents),
       reload: () => view.webContents.reload(),
       onOpenLink: (url) => this.openLinkFromContext(url),
-    });
-    view.webContents.on('before-input-event', (event, input) => {
-      const key = String(input.key || '').toLowerCase();
-      const modifier = input.control || input.meta;
-      const isFindShortcut =
-        input.type === 'keyDown' && modifier && !input.shift && !input.alt && key === 'f';
-      const isHardReloadShortcut =
-        input.type === 'keyDown' && modifier && input.shift && !input.alt && key === 'r';
-      if (isFindShortcut && this.window) {
-        event.preventDefault();
-        this.window.focus();
-        this.window.webContents.focus();
-        this.window.webContents.send('shell:action', { action: 'toggleFind' });
-      }
-      if (isHardReloadShortcut) {
-        event.preventDefault();
-        this.reload(true);
-      }
     });
 
     view.webContents.on('dom-ready', () => {
@@ -654,7 +660,7 @@ class WindowManager {
 
     if (isOdooTab(tab)) {
       tab.view.setBounds(this.getContentBounds());
-      if (!isSameActiveOdooTab) {
+      if (!isSameActiveOdooTab && !this.settingsOpen) {
         this.window.contentView.addChildView(tab.view);
       }
       tab.view.webContents.setZoomLevel(this.zoomLevel);
@@ -916,6 +922,38 @@ class WindowManager {
     this.broadcastState();
   }
 
+  restoreActiveContentView() {
+    if (!this.window || this.window.isDestroyed()) {
+      return;
+    }
+    const tab = this.getActiveTab();
+    if (!isOdooTab(tab) || !tab.view || this.settingsOpen) {
+      return;
+    }
+    tab.view.setBounds(this.getContentBounds());
+    try {
+      this.window.contentView.addChildView(tab.view);
+    } catch {
+      void 0;
+    }
+  }
+
+  setSettingsOpen(open) {
+    const nextOpen = Boolean(open);
+    if (this.settingsOpen === nextOpen) {
+      return;
+    }
+    this.settingsOpen = nextOpen;
+    if (nextOpen) {
+      this.hideAllContentViews();
+      if (this.menuOpen) {
+        this.setMenuOpen(false);
+      }
+      return;
+    }
+    this.restoreActiveContentView();
+  }
+
   getMenuOverlayBounds() {
     const bounds = this.window.getContentBounds();
     return {
@@ -945,7 +983,7 @@ class WindowManager {
     }
 
     attachWebContentsLogging(this.menuOverlayView.webContents, 'menu-overlay');
-    attachInputShortcuts(this.registry, this.menuOverlayView.webContents);
+    attachKeymapShortcuts(this.registry, this.menuOverlayView.webContents);
     attachContextMenu(this.menuOverlayView.webContents, {
       getWindow: () => this.window,
     });
@@ -1141,19 +1179,24 @@ class WindowManager {
   }
 
   setZoom(delta) {
-    const webContents = this.getActiveWebContents();
-    if (!webContents) {
+    const tab = this.getActiveTab();
+    if (!tab) {
       return this.zoomLevel;
     }
-    this.zoomLevel += delta;
-    webContents.setZoomLevel(this.zoomLevel);
+    this.zoomLevel = Math.min(MAX_ZOOM_LEVEL, Math.max(MIN_ZOOM_LEVEL, this.zoomLevel + delta));
+    if (isOdooTab(tab) && tab.view) {
+      tab.view.webContents.setZoomLevel(this.zoomLevel);
+    }
     this.broadcastState();
     return this.zoomLevel;
   }
 
   resetZoom() {
     this.zoomLevel = 0;
-    this.getActiveWebContents()?.setZoomLevel(0);
+    const tab = this.getActiveTab();
+    if (isOdooTab(tab) && tab.view) {
+      tab.view.webContents.setZoomLevel(0);
+    }
     this.broadcastState();
     return this.zoomLevel;
   }
@@ -1253,6 +1296,7 @@ class WindowManager {
       locale: getLocale(),
       i18nCatalog: getCatalog(),
       keymap: getKeymapForDisplay(process.platform, t),
+      permissions: getPermissionsSnapshot(this.config),
     };
   }
 

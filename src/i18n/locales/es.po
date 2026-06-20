@@ -93,6 +93,9 @@ msgstr "Idioma"
 msgid "Settings"
 msgstr "Ajustes"
 
+msgid "General"
+msgstr "General"
+
 msgid "English"
 msgstr "English"
 
@@ -615,6 +618,12 @@ msgstr "Actualización descargada. Reinicia para instalar."
 msgid "Update failed."
 msgstr "No se pudo actualizar."
 
+msgid "Update check failed"
+msgstr "No se pudo comprobar actualizaciones"
+
+msgid "No published releases yet on GitHub."
+msgstr "Aún no hay versiones publicadas en GitHub."
+
 msgid "Restarting..."
 msgstr "Reiniciando..."
 
@@ -626,3 +635,201 @@ msgstr "La instalación automática solo está disponible en la app empaquetada.
 
 msgid "Auto-updater check failed, falling back to GitHub API"
 msgstr "Falló la comprobación automática; se usa la API de GitHub"
+
+msgid "Personalization"
+msgstr "Personalización"
+
+msgid "Choose where downloaded files are saved."
+msgstr "Elige dónde se guardan los archivos descargados."
+
+msgid "Choose folder"
+msgstr "Elegir carpeta"
+
+msgid "Use system default"
+msgstr "Usar carpeta del sistema"
+
+msgid "Open file"
+msgstr "Abrir archivo"
+
+msgid "Open folder"
+msgstr "Abrir carpeta"
+
+msgid "Delete file"
+msgstr "Eliminar archivo"
+
+msgid "Delete this downloaded file?"
+msgstr "¿Eliminar este archivo descargado?"
+
+msgid "Custom folder: %(path)s"
+msgstr "Carpeta personalizada: %(path)s"
+
+msgid "System default: %(path)s"
+msgstr "Carpeta del sistema: %(path)s"
+
+msgid "No log entries yet."
+msgstr "Aún no hay entradas de log."
+
+msgid "File not found."
+msgstr "Archivo no encontrado."
+
+msgid "Folder not found."
+msgstr "Carpeta no encontrada."
+
+msgid "Download not found."
+msgstr "Descarga no encontrada."
+
+msgid "Permissions"
+msgstr "Permisos"
+
+msgid "Control which hardware and file access this app can use."
+msgstr "Controla qué acceso a hardware y archivos puede usar esta app."
+
+msgid "Printer access"
+msgstr "Acceso a impresoras"
+
+msgid "Device access"
+msgstr "Acceso a dispositivos"
+
+msgid "Camera access"
+msgstr "Acceso a cámara"
+
+msgid "File access"
+msgstr "Acceso a archivos"
+
+msgid "Granted on %(date)s"
+msgstr "Concedido el %(date)s"
+
+msgid "Enabled"
+msgstr "Activado"
+
+msgid "Disabled"
+msgstr "Desactivado"
+
+msgid "Permission required"
+msgstr "Permiso requerido"
+
+msgid "Allow"
+msgstr "Permitir"
+
+msgid "Deny"
+msgstr "Denegar"
+
+msgid "printers"
+msgstr "impresoras"
+
+msgid "devices"
+msgstr "dispositivos"
+
+msgid "camera"
+msgstr "cámara"
+
+msgid "files"
+msgstr "archivos"
+
+msgid "Permission granted: %(permission)s"
+msgstr "Permiso concedido: %(permission)s"
+
+msgid "Permission enabled: %(permission)s"
+msgstr "Permiso activado: %(permission)s"
+
+msgid "Permission disabled: %(permission)s"
+msgstr "Permiso desactivado: %(permission)s"
+
+msgid "Permission denied: %(permission)s"
+msgstr "Permiso denegado: %(permission)s"
+
+msgid "%(action)s requires access to %(permission)s."
+msgstr "%(action)s requiere acceso a %(permission)s."
+
+msgid "Allow this app to use %(permission)s access? You can change this later in Settings → Permissions."
+msgstr "¿Permitir que esta app use acceso a %(permission)s? Puedes cambiarlo después en Ajustes → Permisos."
+
+msgid "Unknown permission type."
+msgstr "Tipo de permiso desconocido."
+
+msgid "List printers"
+msgstr "Listar impresoras"
+
+msgid "Print document"
+msgstr "Imprimir documento"
+
+msgid "Print raw data"
+msgstr "Imprimir datos raw"
+
+msgid "Print from Odoo"
+msgstr "Imprimir desde Odoo"
+
+msgid "Remote print job"
+msgstr "Trabajo de impresión remoto"
+
+msgid "List serial ports"
+msgstr "Listar puertos serie"
+
+msgid "Open serial port"
+msgstr "Abrir puerto serie"
+
+msgid "Write to serial port"
+msgstr "Escribir en puerto serie"
+
+msgid "Close serial port"
+msgstr "Cerrar puerto serie"
+
+msgid "List USB devices"
+msgstr "Listar dispositivos USB"
+
+msgid "Open downloaded file"
+msgstr "Abrir archivo descargado"
+
+msgid "Open downloads folder"
+msgstr "Abrir carpeta de descargas"
+
+msgid "Delete downloaded file"
+msgstr "Eliminar archivo descargado"
+
+msgid "Set downloads folder"
+msgstr "Configurar carpeta de descargas"
+
+msgid "Choose downloads folder"
+msgstr "Elegir carpeta de descargas"
+
+msgid "Save downloaded files"
+msgstr "Guardar archivos descargados"
+
+msgid "App permissions"
+msgstr "Permisos de la aplicación"
+
+msgid "Enable all"
+msgstr "Activar todos"
+
+msgid "Not now"
+msgstr "Ahora no"
+
+msgid "Enable hardware and file permissions for this app?"
+msgstr "¿Activar permisos de hardware y archivos para esta aplicación?"
+
+msgid "Includes printer, device, camera, and file access. You can change each permission later in Settings → Permissions."
+msgstr "Incluye acceso a impresoras, dispositivos, cámara y archivos. Puedes cambiar cada permiso después en Ajustes → Permisos."
+
+msgid "All permissions enabled on first run"
+msgstr "Todos los permisos activados en la primera ejecución"
+
+msgid "First-run permissions declined"
+msgstr "Permisos rechazados en la primera ejecución"
+
+msgid "Data"
+msgstr "Datos"
+
+msgid "Remove all local configuration and reset the app to factory defaults."
+msgstr "Elimina toda la configuración local y restablece la app a valores de fábrica."
+
+msgid "Erase all data"
+msgstr "Borrar todos los datos"
+
+msgid "Reset this app to factory defaults?"
+msgstr "¿Restablecer la aplicación a valores de fábrica?"
+
+msgid "This will delete configuration, history, downloads metadata, logs, device identity, and all other local app data. The app will restart. This cannot be undone."
+msgstr "Se eliminarán la configuración, el historial, metadatos de descargas, logs, identidad del dispositivo y todos los datos locales de la app. La aplicación se reiniciará. Esta acción no se puede deshacer."
+
+msgid "Factory reset"
+msgstr "Restablecimiento de fábrica"

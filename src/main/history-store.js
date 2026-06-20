@@ -127,6 +127,24 @@ class HistoryStore {
     return this.downloads[index];
   }
 
+  removeDownload(id, deleteFile = false) {
+    const index = this.downloads.findIndex((item) => item.id === id);
+    if (index === -1) {
+      return null;
+    }
+    const entry = this.downloads[index];
+    if (deleteFile && entry.path && fs.existsSync(entry.path)) {
+      try {
+        fs.unlinkSync(entry.path);
+      } catch {
+        void 0;
+      }
+    }
+    this.downloads = this.downloads.filter((item) => item.id !== id);
+    this.save();
+    return entry;
+  }
+
   clearPageHistory() {
     this.pageHistory = [];
     this.save();

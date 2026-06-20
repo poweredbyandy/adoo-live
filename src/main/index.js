@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, globalShortcut, Notification } = require('electron');
+const { app, BrowserWindow, ipcMain, Notification } = require('electron');
 const { APP_DISPLAY_NAME } = require('../shared/constants');
 const { loadConfig } = require('./config');
 const { initI18n, t } = require('../i18n');
@@ -17,6 +17,7 @@ const { applyAppIcon } = require('./app-icon');
 let modeManager = null;
 let cleanupIpc = null;
 let isDisconnectingDevices = false;
+let appBootstrapped = false;
 
 const gotLock = app.requestSingleInstanceLock();
 app.setName(APP_DISPLAY_NAME);
@@ -24,7 +25,12 @@ if (!gotLock) {
   app.quit();
 }
 
-function createMainWindow() {
+function bootstrapApp() {
+  if (appBootstrapped) {
+    return;
+  }
+  appBootstrapped = true;
+
   setupProcessLogging();
   const config = loadConfig();
   initI18n(config.uiLanguage);
@@ -36,18 +42,20 @@ function createMainWindow() {
   );
   modeManager = new ModeManager(config.startupMode);
   windowRegistry.init(config, modeManager);
-  configureSession();
-
-  const manager = windowRegistry.createMainWindow();
+  configureSession(windowRegistry);
   cleanupIpc = registerIpcHandlers(ipcMain, windowRegistry, modeManager);
-  registerKeymap(windowRegistry, modeManager);
 
   appLogger.subscribe((entry) => {
     windowRegistry.broadcastLogEntry(entry);
   });
 
   appLogger.add('info', 'app', t('Initial mode'), config.startupMode);
+}
 
+function openMainWindow() {
+  bootstrapApp();
+  const manager = windowRegistry.createMainWindow();
+  registerKeymap(windowRegistry);
   return manager;
 }
 
@@ -70,12 +78,19 @@ app.whenReady().then(async () => {
     focused.window.webContents.send('shell:action', { action });
   });
 
-  createMainWindow();
+  openMainWindow();
+  const firstManager = windowRegistry.getFocused() || windowRegistry.getAll()[0];
+  if (firstManager?.window) {
+    firstManager.window.once('ready-to-show', () => {
+      const { runFirstRunPermissionsPrompt } = require('./permission-service');
+      void runFirstRunPermissionsPrompt(windowRegistry);
+    });
+  }
   initUpdateService();
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
-      createMainWindow();
+      openMainWindow();
     }
   });
 });
@@ -104,7 +119,6 @@ app.on('before-quit', (event) => {
 });
 
 app.on('will-quit', async () => {
-  globalShortcut.unregisterAll();
   if (cleanupIpc) {
     cleanupIpc();
   }

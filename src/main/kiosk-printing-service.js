@@ -7,6 +7,7 @@ const { OdooBusClient } = require('./odoo-bus-client');
 const { appLogger } = require('./logger');
 const { t } = require('../i18n');
 const { notifyPrintJob } = require('./print-notification-service');
+const { PERMISSION_TYPES, ensurePermission, getDialogParent } = require('./permission-service');
 
 async function postPrintJobResult(webContents, jobId, body) {
   if (!webContents || webContents.isDestroyed()) {
@@ -48,6 +49,13 @@ class KioskPrintingService {
   }
 
   async printLocal(payload) {
+    const { windowRegistry } = require('./window-registry');
+    await ensurePermission(windowRegistry, PERMISSION_TYPES.PRINTERS, {
+      browserWindow: getDialogParent(windowRegistry),
+      source: 'kiosk-print-local',
+      actionLabel: t('Print document'),
+    });
+
     const noticeId = notifyPrintJob(this.webContents, {
       id: payload.print_uid || undefined,
       phase: 'sending',
@@ -98,6 +106,14 @@ class KioskPrintingService {
     if (!shouldHandleRemotePrintJob(job, identity.device_uid)) {
       return;
     }
+
+    const { windowRegistry } = require('./window-registry');
+    await ensurePermission(windowRegistry, PERMISSION_TYPES.PRINTERS, {
+      browserWindow: getDialogParent(windowRegistry),
+      source: 'kiosk-print-remote',
+      actionLabel: t('Remote print job'),
+    });
+
     const noticeId = notifyPrintJob(this.webContents, {
       id: job.print_uid || String(job.job_id || ''),
       phase: 'sending',

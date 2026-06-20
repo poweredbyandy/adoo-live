@@ -158,7 +158,9 @@ const elements = {
   panelLogs: document.getElementById('panel-logs'),
   panelHistory: document.getElementById('panel-history'),
   panelDownloads: document.getElementById('panel-downloads'),
-  panelSettings: document.getElementById('panel-settings'),
+  settingsModal: document.getElementById('settings-modal'),
+  settingsModalBackdrop: document.getElementById('settings-modal-backdrop'),
+  btnSettingsClose: document.getElementById('btn-settings-close'),
   settingsAboutList: document.getElementById('settings-about-list'),
   settingsAppIcon: document.getElementById('settings-app-icon'),
   settingsAppName: document.getElementById('settings-app-name'),
@@ -167,6 +169,15 @@ const elements = {
   btnCheckUpdates: document.getElementById('btn-check-updates'),
   btnDownloadUpdate: document.getElementById('btn-download-update'),
   btnInstallUpdate: document.getElementById('btn-install-update'),
+  btnFactoryReset: document.getElementById('btn-factory-reset'),
+  settingsDownloadPath: document.getElementById('settings-download-path'),
+  btnPickDownloadFolder: document.getElementById('btn-pick-download-folder'),
+  btnResetDownloadFolder: document.getElementById('btn-reset-download-folder'),
+  settingsLogsPreview: document.getElementById('settings-logs-preview'),
+  settingsNavItems: Array.from(document.querySelectorAll('.settings-nav-item')),
+  settingsPanels: Array.from(document.querySelectorAll('.settings-panel')),
+  permissionToggles: Array.from(document.querySelectorAll('.settings-permission-toggle')),
+  permissionMeta: Array.from(document.querySelectorAll('[data-permission-meta]')),
   homeInstances: document.getElementById('home-instances'),
   homeEmpty: document.getElementById('home-empty'),
   homeInstanceForm: document.getElementById('home-instance-form'),
@@ -190,11 +201,10 @@ const panels = {
   [TAB_TYPES.LOGS]: elements.panelLogs,
   [TAB_TYPES.HISTORY]: elements.panelHistory,
   [TAB_TYPES.DOWNLOADS]: elements.panelDownloads,
-  [TAB_TYPES.SETTINGS]: elements.panelSettings,
 };
 
+let settingsModalOpen = false;
 let settingsAboutInfo = null;
-let settingsPanelLoaded = false;
 let settingsUpdateState = {
   checking: false,
   downloading: false,
@@ -227,6 +237,21 @@ const HISTORY_GROUP_ORDER = ['Today', 'Yesterday', 'Last 7 days', 'Earlier'];
 
 function zoomToPercent(level) {
   return `${Math.round(Math.pow(1.2, level) * 100)}%`;
+}
+
+function zoomToFactor(level) {
+  return Math.pow(1.2, level || 0);
+}
+
+function applyPanelZoom(zoomLevel, isOdooTabActive) {
+  if (!elements.shellContent) {
+    return;
+  }
+  if (isOdooTabActive) {
+    elements.shellContent.style.zoom = '';
+    return;
+  }
+  elements.shellContent.style.zoom = String(zoomToFactor(zoomLevel));
 }
 
 function formatDate(iso) {
@@ -794,7 +819,7 @@ function renderDownloads(downloads) {
   elements.downloadsEmpty.classList.toggle('hidden', list.length > 0);
   list.forEach((entry) => {
     const item = document.createElement('div');
-    item.className = 'panel-item panel-item-static';
+    item.className = 'download-item';
     const stateLabel = entry.state === 'completed'
       ? t('Completed')
       : entry.state === 'cancelled'
@@ -802,13 +827,145 @@ function renderDownloads(downloads) {
         : entry.state === 'interrupted'
           ? t('Interrupted')
           : t('In progress');
-    item.innerHTML = `
+    const hasFile = Boolean(entry.path) && entry.state === 'completed';
+
+    const main = document.createElement('div');
+    main.className = 'download-item-main';
+    main.innerHTML = `
       <span class="panel-item-title">${entry.filename || t('Untitled')}</span>
       <span class="panel-item-meta">${entry.path || entry.url || ''}</span>
       <span class="panel-item-date">${stateLabel} · ${formatDate(entry.completedAt || entry.startedAt)}</span>
     `;
+    item.appendChild(main);
+
+    const actions = document.createElement('div');
+    actions.className = 'download-item-actions';
+
+    const openFileBtn = document.createElement('button');
+    openFileBtn.type = 'button';
+    openFileBtn.className = 'download-action-btn';
+    openFileBtn.textContent = '↗';
+    openFileBtn.title = t('Open file');
+    openFileBtn.setAttribute('aria-label', t('Open file'));
+    openFileBtn.disabled = !hasFile;
+    openFileBtn.addEventListener('click', () => {
+      runAction((api) => api.openDownloadFile(entry.id), {
+        label: t('Open file'),
+        describe: () => entry.filename || entry.path,
+      });
+    });
+
+    const openFolderBtn = document.createElement('button');
+    openFolderBtn.type = 'button';
+    openFolderBtn.className = 'download-action-btn';
+    openFolderBtn.textContent = '▤';
+    openFolderBtn.title = t('Open folder');
+    openFolderBtn.setAttribute('aria-label', t('Open folder'));
+    openFolderBtn.disabled = !hasFile;
+    openFolderBtn.addEventListener('click', () => {
+      runAction((api) => api.openDownloadFolder(entry.id), {
+        label: t('Open folder'),
+        describe: () => entry.path || t('Downloads'),
+      });
+    });
+
+    const deleteBtn = document.createElement('button');
+    deleteBtn.type = 'button';
+    deleteBtn.className = 'download-action-btn is-danger';
+    deleteBtn.textContent = '✕';
+    deleteBtn.title = t('Delete file');
+    deleteBtn.setAttribute('aria-label', t('Delete file'));
+    deleteBtn.disabled = !hasFile;
+    deleteBtn.addEventListener('click', async () => {
+      const confirmed = window.confirm(t('Delete this downloaded file?'));
+      if (!confirmed) {
+        return;
+      }
+      await runAction((api) => api.removeDownload(entry.id, true), {
+        label: t('Delete file'),
+        describe: () => entry.filename || entry.path,
+      });
+    });
+
+    actions.append(openFileBtn, openFolderBtn, deleteBtn);
+    item.appendChild(actions);
     elements.downloadsList.appendChild(item);
   });
+}
+
+function renderSettingsDownloadFolder(info) {
+  if (!elements.settingsDownloadPath) {
+    return;
+  }
+  if (!info) {
+    elements.settingsDownloadPath.textContent = '';
+    return;
+  }
+  const label = info.isCustom
+    ? t('Custom folder: %(path)s', { path: info.path })
+    : t('System default: %(path)s', { path: info.path });
+  elements.settingsDownloadPath.textContent = label;
+  if (elements.btnResetDownloadFolder) {
+    elements.btnResetDownloadFolder.classList.toggle('hidden', !info.isCustom);
+  }
+}
+
+async function loadDownloadFolderSettings() {
+  if (!elements.settingsDownloadPath) {
+    return;
+  }
+  try {
+    const info = await getApi().getDownloadFolder();
+    renderSettingsDownloadFolder(info);
+  } catch (error) {
+    elements.settingsDownloadPath.textContent = error.message || String(error);
+  }
+}
+
+function renderSettingsLogsPreview(logs) {
+  if (!elements.settingsLogsPreview) {
+    return;
+  }
+  const list = logs || [];
+  elements.settingsLogsPreview.textContent = list.length
+    ? list.slice(-80).map(formatLogEntry).join('\n')
+    : t('No log entries yet.');
+}
+
+function renderSettingsPermissions(permissions) {
+  if (!permissions) {
+    return;
+  }
+  elements.permissionToggles.forEach((input) => {
+    const type = input.dataset.permission;
+    input.checked = Boolean(permissions[type]);
+  });
+  elements.permissionMeta.forEach((meta) => {
+    const type = meta.dataset.permissionMeta;
+    const grantedAt = permissions.grantedAt?.[type];
+    if (permissions[type] && grantedAt) {
+      meta.textContent = t('Granted on %(date)s', { date: formatDate(grantedAt) });
+    } else if (permissions[type]) {
+      meta.textContent = t('Enabled');
+    } else {
+      meta.textContent = t('Disabled');
+    }
+  });
+}
+
+function switchSettingsPanel(panelId) {
+  elements.settingsNavItems.forEach((button) => {
+    const isActive = button.dataset.settingsPanel === panelId;
+    button.classList.toggle('active', isActive);
+  });
+  elements.settingsPanels.forEach((panel) => {
+    const isActive = panel.dataset.settingsPanel === panelId;
+    panel.classList.toggle('hidden', !isActive);
+    panel.classList.toggle('active', isActive);
+  });
+  if (panelId === 'logs' && currentState?.panelData?.logs) {
+    renderSettingsLogsPreview(currentState.panelData.logs);
+  }
 }
 
 function createSettingsInfoRow(label, value) {
@@ -896,7 +1053,9 @@ function renderSettingsUpdateUi() {
       });
       elements.settingsUpdateStatus.classList.add('is-warning');
     } else if (state.upToDate) {
-      message = t('You are on the latest version (%(version)s).', { version: state.currentVersion });
+      message = state.noReleasesPublished
+        ? t('No published releases yet on GitHub.')
+        : t('You are on the latest version (%(version)s).', { version: state.currentVersion });
       elements.settingsUpdateStatus.classList.add('is-success');
     } else {
       message = t('Check whether a new release is available on GitHub.');
@@ -924,8 +1083,8 @@ function renderSettingsUpdateUi() {
   }
 }
 
-async function loadSettingsPanel(forceCheck = false) {
-  if (!elements.panelSettings) {
+async function loadSettingsPanel() {
+  if (!elements.settingsModal) {
     return;
   }
   try {
@@ -933,13 +1092,25 @@ async function loadSettingsPanel(forceCheck = false) {
     renderSettingsAbout(about);
     settingsUpdateState.currentVersion = about.version;
     renderSettingsUpdateUi();
-    if (forceCheck || !settingsUpdateState.upToDate) {
-      await checkSettingsUpdates();
-    }
+    await loadDownloadFolderSettings();
   } catch (error) {
     settingsUpdateState.message = error.message || String(error);
     settingsUpdateState.error = true;
     renderSettingsUpdateUi();
+  }
+}
+
+async function prefetchSettingsAbout() {
+  if (settingsAboutInfo) {
+    return;
+  }
+  try {
+    const about = await getApi().getAboutInfo();
+    renderSettingsAbout(about);
+    settingsUpdateState.currentVersion = about.version;
+    renderSettingsUpdateUi();
+  } catch {
+    void 0;
   }
 }
 
@@ -950,6 +1121,13 @@ async function checkSettingsUpdates() {
   renderSettingsUpdateUi();
   try {
     const result = await getApi().checkForUpdates();
+    if (result.error) {
+      settingsUpdateState.checking = false;
+      settingsUpdateState.error = true;
+      settingsUpdateState.message = result.message || t('Update failed.');
+      renderSettingsUpdateUi();
+      return;
+    }
     settingsUpdateState = {
       ...settingsUpdateState,
       checking: false,
@@ -961,6 +1139,7 @@ async function checkSettingsUpdates() {
       currentVersion: result.currentVersion || settingsUpdateState.currentVersion,
       latestVersion: result.latestVersion || '',
       releaseUrl: result.releaseUrl || '',
+      noReleasesPublished: Boolean(result.noReleasesPublished),
       message: '',
       error: false,
       downloadPercent: 0,
@@ -999,7 +1178,7 @@ async function downloadSettingsUpdate() {
 }
 
 function handleSettingsUpdateEvent(payload) {
-  if (!payload || currentState?.activeTabType !== TAB_TYPES.SETTINGS) {
+  if (!payload || !settingsModalOpen) {
     return;
   }
   if (payload.phase === 'checking') {
@@ -1030,6 +1209,58 @@ function handleSettingsUpdateEvent(payload) {
 }
 
 function bindSettingsPanel() {
+  elements.settingsNavItems.forEach((button) => {
+    button.addEventListener('click', () => {
+      switchSettingsPanel(button.dataset.settingsPanel);
+    });
+  });
+
+  if (elements.btnPickDownloadFolder) {
+    elements.btnPickDownloadFolder.addEventListener('click', async () => {
+      try {
+        const info = await runAction((api) => api.pickDownloadFolder(), {
+          label: t('Choose folder'),
+          describe: (result) => result?.path || t('Cancelled'),
+        });
+        if (info) {
+          renderSettingsDownloadFolder(info);
+        }
+      } catch {
+        void 0;
+      }
+    });
+  }
+
+  if (elements.btnResetDownloadFolder) {
+    elements.btnResetDownloadFolder.addEventListener('click', async () => {
+      try {
+        const info = await runAction((api) => api.setDownloadFolder(null), {
+          label: t('Use system default'),
+          describe: (result) => result?.path || '',
+        });
+        renderSettingsDownloadFolder(info);
+      } catch {
+        void 0;
+      }
+    });
+  }
+
+  elements.permissionToggles.forEach((input) => {
+    input.addEventListener('change', async () => {
+      const type = input.dataset.permission;
+      const enabled = input.checked;
+      try {
+        const snapshot = await runAction((api) => api.setPermission(type, enabled), {
+          label: t('Permissions'),
+          describe: () => `${type}: ${enabled ? t('Enabled') : t('Disabled')}`,
+        });
+        renderSettingsPermissions(snapshot);
+      } catch {
+        input.checked = !enabled;
+      }
+    });
+  });
+
   if (elements.btnCheckUpdates) {
     elements.btnCheckUpdates.addEventListener('click', () => {
       checkSettingsUpdates();
@@ -1048,6 +1279,76 @@ function bindSettingsPanel() {
       });
     });
   }
+  if (elements.btnFactoryReset) {
+    elements.btnFactoryReset.addEventListener('click', async () => {
+      try {
+        const result = await runAction((api) => api.factoryReset(), {
+          label: t('Erase all data'),
+          describe: (value) => (value?.cancelled ? t('Cancelled') : t('Factory reset')),
+        });
+        if (result?.cancelled) {
+          return;
+        }
+      } catch {
+        void 0;
+      }
+    });
+  }
+  if (elements.btnSettingsClose) {
+    elements.btnSettingsClose.addEventListener('click', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      closeSettingsModal();
+    });
+  }
+  if (elements.settingsModalBackdrop) {
+    elements.settingsModalBackdrop.addEventListener('click', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      closeSettingsModal();
+    });
+  }
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && settingsModalOpen) {
+      event.preventDefault();
+      closeSettingsModal();
+    }
+  });
+}
+
+function applySettingsModalVisibility(isOpen) {
+  settingsModalOpen = Boolean(isOpen);
+  if (elements.settingsModal) {
+    elements.settingsModal.classList.toggle('hidden', !settingsModalOpen);
+    elements.settingsModal.setAttribute('aria-hidden', String(!settingsModalOpen));
+  }
+  if (elements.settingsModalBackdrop) {
+    elements.settingsModalBackdrop.classList.toggle('hidden', !settingsModalOpen);
+    elements.settingsModalBackdrop.setAttribute('aria-hidden', String(!settingsModalOpen));
+  }
+  if (!isMenuOverlay) {
+    void getApi().setSettingsOpen(settingsModalOpen);
+  }
+}
+
+function openSettingsModal() {
+  closeMenu();
+  switchSettingsPanel('personalization');
+  applySettingsModalVisibility(true);
+  renderSettingsUpdateUi();
+  if (!settingsAboutInfo) {
+    void loadSettingsPanel();
+  } else {
+    void loadDownloadFolderSettings();
+    if (currentState?.panelData?.logs) {
+      renderSettingsLogsPreview(currentState.panelData.logs);
+    }
+  }
+}
+
+function closeSettingsModal() {
+  applySettingsModalVisibility(false);
 }
 
 function renderPanelContent(state) {
@@ -1205,8 +1506,12 @@ function applyOverlayState(state) {
   }
   updateModeSwitches(state.mode);
   elements.btnZoomReset.textContent = zoomToPercent(state.zoomLevel);
+  applyPanelZoom(state.zoomLevel, state.isOdooTabActive);
   renderKeymap(state.keymap);
   applyMenuVisibility(state.menuOpen);
+  if (state.menuOpen) {
+    closeSettingsModal();
+  }
 }
 
 function applyState(state) {
@@ -1267,21 +1572,22 @@ function applyState(state) {
 
   if (odooActive) {
     hidePanels();
-    settingsPanelLoaded = false;
   } else {
     showPanel(state.activeTabType);
     renderPanelContent(state);
-    if (state.activeTabType === TAB_TYPES.SETTINGS && !settingsPanelLoaded) {
-      settingsPanelLoaded = true;
-      loadSettingsPanel(true);
-    }
   }
 
   elements.btnZoomReset.textContent = zoomToPercent(state.zoomLevel);
+  applyPanelZoom(state.zoomLevel, state.isOdooTabActive);
   renderKeymap(state.keymap);
 
   if (state.findResult) {
     updateFindStatus(state.findResult);
+  }
+
+  if (settingsModalOpen) {
+    renderSettingsLogsPreview(state.panelData?.logs);
+    renderSettingsPermissions(state.permissions);
   }
 }
 
@@ -1682,7 +1988,7 @@ const MENU_ACTION_KEYS = {
   'open-logs': 'View logs',
   'open-history': 'Page history',
   'open-downloads': 'Download history',
-  'open-settings': 'About & updates',
+  'open-settings': 'Settings',
   'copy-logs': 'Copy logs',
   'export-logs': 'Export logs to file',
   'clear-logs': 'Clear logs',
@@ -1698,6 +2004,10 @@ async function handleMenuAction(action, options = {}) {
 
   if (!options.keepMenuOpen) {
     closeMenu();
+  }
+
+  if (action !== 'open-settings') {
+    closeSettingsModal();
   }
 
   switch (action) {
@@ -1723,7 +2033,12 @@ async function handleMenuAction(action, options = {}) {
       await runAction((api) => api.openTab(TAB_TYPES.DOWNLOADS), { label, describe: describeBrowserState });
       break;
     case 'open-settings':
-      await runAction((api) => api.openTab(TAB_TYPES.SETTINGS), { label, describe: describeBrowserState });
+      if (isMenuOverlay) {
+        closeMenu();
+        await getApi().sendShellAction('openSettings');
+      } else {
+        openSettingsModal();
+      }
       break;
     case 'copy-logs':
       await copyLogs();
@@ -1861,7 +2176,28 @@ window.addEventListener('unhandledrejection', (event) => {
   }
 });
 
+function bindMenuGroupToggles() {
+  document.querySelectorAll('.menu-group-toggle').forEach((toggle) => {
+    toggle.addEventListener('click', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      const group = toggle.closest('.menu-group');
+      const body = group?.querySelector('.menu-group-body');
+      if (!body) {
+        return;
+      }
+      const isOpen = toggle.getAttribute('aria-expanded') === 'true';
+      toggle.setAttribute('aria-expanded', String(!isOpen));
+      group.classList.toggle('is-open', !isOpen);
+      body.hidden = isOpen;
+      requestMenuDrawerScrollbarRefresh();
+    });
+  });
+}
+
 function bindMenuHandlers() {
+  bindMenuGroupToggles();
+
   elements.modeItems.forEach((button) => {
     button.addEventListener('click', () => {
       if (button.classList.contains('active')) {
@@ -1956,6 +2292,18 @@ function boot() {
       if (payload?.action === 'open-downloads') {
         handleMenuAction('open-downloads');
       }
+      if (payload?.action === 'exportLogs') {
+        handleMenuAction('export-logs');
+      }
+      if (payload?.action === 'copyLogs') {
+        handleMenuAction('copy-logs');
+      }
+      if (payload?.action === 'clearLogs') {
+        handleMenuAction('clear-logs');
+      }
+      if (payload?.action === 'openSettings') {
+        openSettingsModal();
+      }
     });
 
     api.onLogEntry((entry) => {
@@ -1963,9 +2311,13 @@ function boot() {
         currentState.panelData.logs = [...(currentState.panelData.logs || []), entry];
         renderLogs(currentState.panelData.logs);
       }
+      if (settingsModalOpen && currentState?.panelData) {
+        currentState.panelData.logs = [...(currentState.panelData.logs || []), entry];
+        renderSettingsLogsPreview(currentState.panelData.logs);
+      }
     });
 
-    api.getState().then(applyState).catch((error) => {
+    api.getState().then(applyState).then(() => prefetchSettingsAbout()).catch((error) => {
       elements.bootError.textContent = error.message;
       elements.bootError.classList.remove('hidden');
     });

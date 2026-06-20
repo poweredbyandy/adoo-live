@@ -55,26 +55,57 @@ function normalizeGithubCheck(currentVersion, release) {
 async function checkForUpdatesViaGithub() {
   const currentVersion = app.getVersion();
   const release = await fetchLatestRelease();
+  if (!release) {
+    lastCheckResult = {
+      currentVersion,
+      latestVersion: currentVersion,
+      updateAvailable: false,
+      upToDate: true,
+      releaseUrl: `https://github.com/${GITHUB_OWNER}/${GITHUB_REPO}/releases`,
+      releaseNotes: '',
+      publishedAt: '',
+      canAutoUpdate: app.isPackaged,
+      source: 'github',
+      noReleasesPublished: true,
+    };
+    return lastCheckResult;
+  }
   lastCheckResult = normalizeGithubCheck(currentVersion, release);
   return lastCheckResult;
 }
 
+function buildUpdateCheckError(currentVersion, error) {
+  return {
+    currentVersion,
+    latestVersion: '',
+    updateAvailable: false,
+    upToDate: false,
+    releaseUrl: `https://github.com/${GITHUB_OWNER}/${GITHUB_REPO}/releases`,
+    releaseNotes: '',
+    publishedAt: '',
+    canAutoUpdate: app.isPackaged,
+    source: 'github',
+    error: true,
+    message: error.message || String(error),
+  };
+}
+
 async function checkForUpdates() {
-  if (!app.isPackaged) {
-    const result = await checkForUpdatesViaGithub();
-    broadcastUpdateEvent({ phase: 'checked', ...result });
-    return result;
-  }
-
-  const updater = getAutoUpdater();
-  updater.autoDownload = false;
-  updater.autoInstallOnAppQuit = true;
-
+  const currentVersion = app.getVersion();
   try {
+    if (!app.isPackaged) {
+      const result = await checkForUpdatesViaGithub();
+      broadcastUpdateEvent({ phase: 'checked', ...result });
+      return result;
+    }
+
+    const updater = getAutoUpdater();
+    updater.autoDownload = false;
+    updater.autoInstallOnAppQuit = true;
+
     const pending = await updater.checkForUpdates();
     const info = pending?.updateInfo;
     const latestVersion = String(info?.version || '').trim();
-    const currentVersion = app.getVersion();
     if (!latestVersion) {
       return checkForUpdatesViaGithub();
     }
@@ -93,8 +124,14 @@ async function checkForUpdates() {
     broadcastUpdateEvent({ phase: 'checked', ...lastCheckResult });
     return lastCheckResult;
   } catch (error) {
-    appLogger.add('warn', 'update', t('Auto-updater check failed, falling back to GitHub API'), error.message);
-    return checkForUpdatesViaGithub();
+    appLogger.add('warn', 'update', t('Update check failed'), error.message);
+    try {
+      return await checkForUpdatesViaGithub();
+    } catch (fallbackError) {
+      lastCheckResult = buildUpdateCheckError(currentVersion, fallbackError);
+      broadcastUpdateEvent({ phase: 'error', message: lastCheckResult.message });
+      return lastCheckResult;
+    }
   }
 }
 

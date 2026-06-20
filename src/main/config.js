@@ -13,10 +13,22 @@ const DEFAULTS = {
   instances: [],
   defaultInstanceId: null,
   uiLanguage: 'en',
+  downloadPath: null,
+  permissions: {
+    printers: false,
+    devices: false,
+    camera: false,
+    files: false,
+  },
+  permissionsGrantedAt: {},
 };
 
 function getUserConfigPath() {
   return path.join(app.getPath('userData'), 'config.json');
+}
+
+function isFirstInstall() {
+  return !fs.existsSync(getUserConfigPath());
 }
 
 function getConfigPath() {
@@ -82,6 +94,7 @@ module.exports = {
   loadConfig,
   getConfigPath,
   getUserConfigPath,
+  isFirstInstall,
   resolveStartupMode,
   saveUserConfig,
   saveLastMode,

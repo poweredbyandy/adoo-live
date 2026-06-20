@@ -1,5 +1,7 @@
 const { IPC } = require('../../shared/ipc-channels');
 const { validatePrintPayload, validatePrintRawPayload } = require('../../shared/validators');
+const { PERMISSION_TYPES, ensurePermission, getDialogParent } = require('../permission-service');
+const { t } = require('../../i18n');
 
 function buildPrintOptions(payload) {
   return {
@@ -20,8 +22,17 @@ function normalizeRawData(data) {
   return Buffer.from(String(data));
 }
 
-function registerPrinterHandlers(ipcMain, getActiveWebContents, logVerbose) {
+function registerPrinterHandlers(ipcMain, windowRegistry, getActiveWebContents, logVerbose) {
+  const ensurePrinters = async (actionLabel) => {
+    await ensurePermission(windowRegistry, PERMISSION_TYPES.PRINTERS, {
+      browserWindow: getDialogParent(windowRegistry),
+      source: 'printer-ipc',
+      actionLabel,
+    });
+  };
+
   ipcMain.handle(IPC.PRINTER_LIST, async () => {
+    await ensurePrinters(t('List printers'));
     const webContents = getActiveWebContents();
     if (!webContents) {
       return [];
@@ -32,6 +43,7 @@ function registerPrinterHandlers(ipcMain, getActiveWebContents, logVerbose) {
   });
 
   ipcMain.handle(IPC.PRINTER_PRINT, async (_event, payload) => {
+    await ensurePrinters(t('Print document'));
     const result = validatePrintPayload(payload);
     if (!result.valid) {
       throw new Error(result.error);
@@ -57,6 +69,7 @@ function registerPrinterHandlers(ipcMain, getActiveWebContents, logVerbose) {
   });
 
   ipcMain.handle(IPC.PRINTER_PRINT_RAW, async (_event, payload) => {
+    await ensurePrinters(t('Print raw data'));
     const result = validatePrintRawPayload(payload);
     if (!result.valid) {
       throw new Error(result.error);

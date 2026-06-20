@@ -6,7 +6,7 @@ const MODES = {
   DEVELOPER: 'developer',
 };
 
-const TOOLBAR_HEIGHT = 48;
+const TOOLBAR_HEIGHT = 40;
 const TITLEBAR_HEIGHT = 38;
 const CHROME_BG = '#1e1f22';
 const CHROME_SYMBOL = '#f2f3f5';

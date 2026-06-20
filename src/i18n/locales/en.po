@@ -93,6 +93,9 @@ msgstr "Language"
 msgid "Settings"
 msgstr "Settings"
 
+msgid "General"
+msgstr "General"
+
 msgid "English"
 msgstr "English"
 
@@ -621,6 +624,12 @@ msgstr "Update downloaded. Restart to install."
 msgid "Update failed."
 msgstr "Update failed."
 
+msgid "Update check failed"
+msgstr "Update check failed"
+
+msgid "No published releases yet on GitHub."
+msgstr "No published releases yet on GitHub."
+
 msgid "Restarting..."
 msgstr "Restarting..."
 
@@ -632,3 +641,201 @@ msgstr "Automatic installation is only available in the packaged app."
 
 msgid "Auto-updater check failed, falling back to GitHub API"
 msgstr "Auto-updater check failed, falling back to GitHub API"
+
+msgid "Personalization"
+msgstr "Personalization"
+
+msgid "Choose where downloaded files are saved."
+msgstr "Choose where downloaded files are saved."
+
+msgid "Choose folder"
+msgstr "Choose folder"
+
+msgid "Use system default"
+msgstr "Use system default"
+
+msgid "Open file"
+msgstr "Open file"
+
+msgid "Open folder"
+msgstr "Open folder"
+
+msgid "Delete file"
+msgstr "Delete file"
+
+msgid "Delete this downloaded file?"
+msgstr "Delete this downloaded file?"
+
+msgid "Custom folder: %(path)s"
+msgstr "Custom folder: %(path)s"
+
+msgid "System default: %(path)s"
+msgstr "System default: %(path)s"
+
+msgid "No log entries yet."
+msgstr "No log entries yet."
+
+msgid "File not found."
+msgstr "File not found."
+
+msgid "Folder not found."
+msgstr "Folder not found."
+
+msgid "Download not found."
+msgstr "Download not found."
+
+msgid "Permissions"
+msgstr "Permissions"
+
+msgid "Control which hardware and file access this app can use."
+msgstr "Control which hardware and file access this app can use."
+
+msgid "Printer access"
+msgstr "Printer access"
+
+msgid "Device access"
+msgstr "Device access"
+
+msgid "Camera access"
+msgstr "Camera access"
+
+msgid "File access"
+msgstr "File access"
+
+msgid "Granted on %(date)s"
+msgstr "Granted on %(date)s"
+
+msgid "Enabled"
+msgstr "Enabled"
+
+msgid "Disabled"
+msgstr "Disabled"
+
+msgid "Permission required"
+msgstr "Permission required"
+
+msgid "Allow"
+msgstr "Allow"
+
+msgid "Deny"
+msgstr "Deny"
+
+msgid "printers"
+msgstr "printers"
+
+msgid "devices"
+msgstr "devices"
+
+msgid "camera"
+msgstr "camera"
+
+msgid "files"
+msgstr "files"
+
+msgid "Permission granted: %(permission)s"
+msgstr "Permission granted: %(permission)s"
+
+msgid "Permission enabled: %(permission)s"
+msgstr "Permission enabled: %(permission)s"
+
+msgid "Permission disabled: %(permission)s"
+msgstr "Permission disabled: %(permission)s"
+
+msgid "Permission denied: %(permission)s"
+msgstr "Permission denied: %(permission)s"
+
+msgid "%(action)s requires access to %(permission)s."
+msgstr "%(action)s requires access to %(permission)s."
+
+msgid "Allow this app to use %(permission)s access? You can change this later in Settings → Permissions."
+msgstr "Allow this app to use %(permission)s access? You can change this later in Settings → Permissions."
+
+msgid "Unknown permission type."
+msgstr "Unknown permission type."
+
+msgid "List printers"
+msgstr "List printers"
+
+msgid "Print document"
+msgstr "Print document"
+
+msgid "Print raw data"
+msgstr "Print raw data"
+
+msgid "Print from Odoo"
+msgstr "Print from Odoo"
+
+msgid "Remote print job"
+msgstr "Remote print job"
+
+msgid "List serial ports"
+msgstr "List serial ports"
+
+msgid "Open serial port"
+msgstr "Open serial port"
+
+msgid "Write to serial port"
+msgstr "Write to serial port"
+
+msgid "Close serial port"
+msgstr "Close serial port"
+
+msgid "List USB devices"
+msgstr "List USB devices"
+
+msgid "Open downloaded file"
+msgstr "Open downloaded file"
+
+msgid "Open downloads folder"
+msgstr "Open downloads folder"
+
+msgid "Delete downloaded file"
+msgstr "Delete downloaded file"
+
+msgid "Set downloads folder"
+msgstr "Set downloads folder"
+
+msgid "Choose downloads folder"
+msgstr "Choose downloads folder"
+
+msgid "Save downloaded files"
+msgstr "Save downloaded files"
+
+msgid "App permissions"
+msgstr "App permissions"
+
+msgid "Enable all"
+msgstr "Enable all"
+
+msgid "Not now"
+msgstr "Not now"
+
+msgid "Enable hardware and file permissions for this app?"
+msgstr "Enable hardware and file permissions for this app?"
+
+msgid "Includes printer, device, camera, and file access. You can change each permission later in Settings → Permissions."
+msgstr "Includes printer, device, camera, and file access. You can change each permission later in Settings → Permissions."
+
+msgid "All permissions enabled on first run"
+msgstr "All permissions enabled on first run"
+
+msgid "First-run permissions declined"
+msgstr "First-run permissions declined"
+
+msgid "Data"
+msgstr "Data"
+
+msgid "Remove all local configuration and reset the app to factory defaults."
+msgstr "Remove all local configuration and reset the app to factory defaults."
+
+msgid "Erase all data"
+msgstr "Erase all data"
+
+msgid "Reset this app to factory defaults?"
+msgstr "Reset this app to factory defaults?"
+
+msgid "This will delete configuration, history, downloads metadata, logs, device identity, and all other local app data. The app will restart. This cannot be undone."
+msgstr "This will delete configuration, history, downloads metadata, logs, device identity, and all other local app data. The app will restart. This cannot be undone."
+
+msgid "Factory reset"
+msgstr "Factory reset"

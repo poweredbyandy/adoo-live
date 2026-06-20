@@ -63,12 +63,17 @@
       <div class="menu-drawer-scroll-wrap">
         <div id="menu-drawer-scroll" class="menu-drawer-scroll">
           <div class="menu-section">
-            <span class="menu-label" data-i18n>Navigation</span>
-            <button class="menu-item tab-only" data-action="new-tab" data-i18n>New Odoo tab</button>
-            <button class="menu-item" data-action="find" data-i18n>Find in page</button>
+            <button class="menu-item tab-only" data-action="new-tab">
+              <span class="menu-item-icon" aria-hidden="true">＋</span>
+              <span class="menu-item-label" data-i18n>New Odoo tab</span>
+            </button>
+            <button class="menu-item" data-action="find">
+              <span class="menu-item-icon" aria-hidden="true">⌕</span>
+              <span class="menu-item-label" data-i18n>Find in page</span>
+            </button>
           </div>
+
           <div class="menu-section">
-            <span class="menu-label" data-i18n>View</span>
             <div class="zoom-control">
               <span class="zoom-title" data-i18n>Zoom</span>
               <div class="zoom-stepper">
@@ -78,41 +83,61 @@
               </div>
             </div>
           </div>
-          <div class="menu-section tab-only">
-            <span class="menu-label" data-i18n>History</span>
-            <button class="menu-item" data-action="open-history" data-i18n>Page history</button>
-            <button class="menu-item" data-action="open-downloads" data-i18n>Download history</button>
-          </div>
-          <div class="menu-section dev-only">
-            <span class="menu-label" data-i18n>Developer</span>
-            <button class="menu-item" data-action="devtools" data-i18n>Developer tools</button>
-          </div>
-          <div class="menu-section">
-            <span class="menu-label" data-i18n>Settings</span>
-            <div id="mode-segment" class="mode-segment is-kiosk" role="radiogroup" data-i18n-aria-label="Kiosk / Window mode">
-              <span class="mode-segment-indicator" aria-hidden="true"></span>
-              <button type="button" class="mode-segment-option active" data-mode="kiosk" aria-pressed="true" data-i18n>Kiosk</button>
-              <button type="button" class="mode-segment-option" data-mode="free" aria-pressed="false" data-i18n>Window</button>
+
+          <div class="menu-group tab-only" data-menu-group="history">
+            <button type="button" class="menu-group-toggle" aria-expanded="false" aria-controls="menu-group-history">
+              <span class="menu-group-leading">
+                <span class="menu-group-icon" aria-hidden="true">↺</span>
+                <span class="menu-group-label" data-i18n>History</span>
+              </span>
+              <span class="menu-group-chevron" aria-hidden="true">›</span>
+            </button>
+            <div id="menu-group-history" class="menu-group-body" hidden>
+              <button class="menu-item" data-action="open-history">
+                <span class="menu-item-icon" aria-hidden="true">☰</span>
+                <span class="menu-item-label" data-i18n>Page history</span>
+              </button>
+              <button class="menu-item" data-action="open-downloads">
+                <span class="menu-item-icon" aria-hidden="true">↓</span>
+                <span class="menu-item-label" data-i18n>Download history</span>
+              </button>
             </div>
-            <label class="menu-select-field" for="language-select">
-              <span class="menu-select-label" data-i18n>Language</span>
-              <select id="language-select" class="menu-select" data-i18n-aria-label="Language">
-                <option value="en" data-i18n>English</option>
-                <option value="es" data-i18n>Spanish</option>
-              </select>
-            </label>
-            <button class="menu-item" data-action="open-settings" data-i18n>About &amp; updates</button>
           </div>
+
           <div class="menu-section">
-            <span class="menu-label" data-i18n>Help</span>
-            <div id="keymap-list" class="keymap-list"></div>
+            <button class="menu-item" data-action="open-settings" type="button">
+              <span class="menu-item-icon" aria-hidden="true">⚙</span>
+              <span class="menu-item-label" data-i18n>Settings</span>
+            </button>
           </div>
-          <div class="menu-section">
-            <span class="menu-label" data-i18n>Logs</span>
-            <button class="menu-item tab-only" data-action="open-logs" data-i18n>View logs</button>
-            <button class="menu-item" data-action="copy-logs" data-i18n>Copy logs</button>
-            <button class="menu-item" data-action="export-logs" data-i18n>Export logs to file</button>
-            <button class="menu-item" data-action="clear-logs" data-i18n>Clear logs</button>
+
+          <div class="menu-group dev-only" data-menu-group="developer">
+            <button type="button" class="menu-group-toggle" aria-expanded="false" aria-controls="menu-group-developer">
+              <span class="menu-group-leading">
+                <span class="menu-group-icon" aria-hidden="true">{ }</span>
+                <span class="menu-group-label" data-i18n>Developer</span>
+              </span>
+              <span class="menu-group-chevron" aria-hidden="true">›</span>
+            </button>
+            <div id="menu-group-developer" class="menu-group-body" hidden>
+              <button class="menu-item" data-action="devtools">
+                <span class="menu-item-icon" aria-hidden="true">⚙</span>
+                <span class="menu-item-label" data-i18n>Developer tools</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="menu-group" data-menu-group="help">
+            <button type="button" class="menu-group-toggle" aria-expanded="false" aria-controls="menu-group-help">
+              <span class="menu-group-leading">
+                <span class="menu-group-icon" aria-hidden="true">?</span>
+                <span class="menu-group-label" data-i18n>Help</span>
+              </span>
+              <span class="menu-group-chevron" aria-hidden="true">›</span>
+            </button>
+            <div id="menu-group-help" class="menu-group-body" hidden>
+              <div id="keymap-list" class="keymap-list"></div>
+            </div>
           </div>
         </div>
         <div class="menu-drawer-scrollbar" aria-hidden="true">
@@ -120,6 +145,134 @@
         </div>
       </div>
     </aside>
+
+    <div id="settings-modal-backdrop" class="settings-modal-backdrop hidden" aria-hidden="true"></div>
+    <div id="settings-modal" class="settings-modal hidden" role="dialog" aria-modal="true" aria-labelledby="settings-modal-title" aria-hidden="true">
+      <div class="settings-modal-header">
+        <h2 id="settings-modal-title" data-i18n>Settings</h2>
+        <button id="btn-settings-close" class="icon-btn" type="button" data-i18n-title="Close">✕</button>
+      </div>
+      <div class="settings-modal-body">
+        <div class="settings-modal-layout">
+          <nav class="settings-modal-nav" aria-label="Settings sections">
+            <button type="button" class="settings-nav-item active" data-settings-panel="personalization" data-i18n>Personalization</button>
+            <button type="button" class="settings-nav-item" data-settings-panel="downloads" data-i18n>Downloads</button>
+            <button type="button" class="settings-nav-item" data-settings-panel="permissions" data-i18n>Permissions</button>
+            <button type="button" class="settings-nav-item" data-settings-panel="logs" data-i18n>Logs</button>
+            <button type="button" class="settings-nav-item" data-settings-panel="about" data-i18n>About</button>
+          </nav>
+          <div class="settings-modal-panels">
+            <div id="settings-panel-personalization" class="settings-panel active" data-settings-panel="personalization">
+              <h3 class="settings-panel-title" data-i18n>Personalization</h3>
+              <div id="mode-segment" class="mode-segment is-kiosk" role="radiogroup" data-i18n-aria-label="Kiosk / Window mode">
+                <span class="mode-segment-indicator" aria-hidden="true"></span>
+                <button type="button" class="mode-segment-option active" data-mode="kiosk" aria-pressed="true" data-i18n>Kiosk</button>
+                <button type="button" class="mode-segment-option" data-mode="free" aria-pressed="false" data-i18n>Window</button>
+              </div>
+              <label class="menu-select-field" for="language-select">
+                <span class="menu-select-label" data-i18n>Language</span>
+                <select id="language-select" class="menu-select" data-i18n-aria-label="Language">
+                  <option value="en" data-i18n>English</option>
+                  <option value="es" data-i18n>Spanish</option>
+                </select>
+              </label>
+            </div>
+
+            <div id="settings-panel-downloads" class="settings-panel hidden" data-settings-panel="downloads">
+              <h3 class="settings-panel-title" data-i18n>Downloads</h3>
+              <p class="settings-panel-hint" data-i18n>Choose where downloaded files are saved.</p>
+              <div id="settings-download-path" class="settings-path-display"></div>
+              <div class="settings-actions">
+                <button id="btn-pick-download-folder" type="button" class="settings-btn" data-i18n>Choose folder</button>
+                <button id="btn-reset-download-folder" type="button" class="settings-btn hidden" data-i18n>Use system default</button>
+              </div>
+            </div>
+
+            <div id="settings-panel-permissions" class="settings-panel hidden" data-settings-panel="permissions">
+              <h3 class="settings-panel-title" data-i18n>Permissions</h3>
+              <p class="settings-panel-hint" data-i18n>Control which hardware and file access this app can use.</p>
+              <div class="settings-permission-list">
+                <label class="settings-permission-item">
+                  <input type="checkbox" class="settings-permission-toggle" data-permission="printers" />
+                  <span class="settings-permission-text">
+                    <span class="settings-permission-label" data-i18n>Printer access</span>
+                    <span class="settings-permission-meta" data-permission-meta="printers"></span>
+                  </span>
+                </label>
+                <label class="settings-permission-item">
+                  <input type="checkbox" class="settings-permission-toggle" data-permission="devices" />
+                  <span class="settings-permission-text">
+                    <span class="settings-permission-label" data-i18n>Device access</span>
+                    <span class="settings-permission-meta" data-permission-meta="devices"></span>
+                  </span>
+                </label>
+                <label class="settings-permission-item">
+                  <input type="checkbox" class="settings-permission-toggle" data-permission="camera" />
+                  <span class="settings-permission-text">
+                    <span class="settings-permission-label" data-i18n>Camera access</span>
+                    <span class="settings-permission-meta" data-permission-meta="camera"></span>
+                  </span>
+                </label>
+                <label class="settings-permission-item">
+                  <input type="checkbox" class="settings-permission-toggle" data-permission="files" />
+                  <span class="settings-permission-text">
+                    <span class="settings-permission-label" data-i18n>File access</span>
+                    <span class="settings-permission-meta" data-permission-meta="files"></span>
+                  </span>
+                </label>
+              </div>
+            </div>
+
+            <div id="settings-panel-logs" class="settings-panel hidden" data-settings-panel="logs">
+              <h3 class="settings-panel-title" data-i18n>Logs</h3>
+              <div class="settings-log-actions">
+                <button class="menu-item tab-only" data-action="open-logs" type="button">
+                  <span class="menu-item-icon" aria-hidden="true">▤</span>
+                  <span class="menu-item-label" data-i18n>View logs</span>
+                </button>
+                <button class="menu-item" data-action="copy-logs" type="button">
+                  <span class="menu-item-icon" aria-hidden="true">⧉</span>
+                  <span class="menu-item-label" data-i18n>Copy logs</span>
+                </button>
+                <button class="menu-item" data-action="export-logs" type="button">
+                  <span class="menu-item-icon" aria-hidden="true">↗</span>
+                  <span class="menu-item-label" data-i18n>Export logs to file</span>
+                </button>
+                <button class="menu-item" data-action="clear-logs" type="button">
+                  <span class="menu-item-icon" aria-hidden="true">✕</span>
+                  <span class="menu-item-label" data-i18n>Clear logs</span>
+                </button>
+              </div>
+              <pre id="settings-logs-preview" class="settings-logs-preview"></pre>
+            </div>
+
+            <div id="settings-panel-about" class="settings-panel hidden" data-settings-panel="about">
+              <h3 class="settings-panel-title" data-i18n>About</h3>
+              <div class="settings-about-brand">
+                <img id="settings-app-icon" class="settings-app-icon" src="../../icon.png" alt="" />
+                <div class="settings-about-brand-text">
+                  <div id="settings-app-name" class="settings-app-name">adoo IoT</div>
+                  <div id="settings-app-version" class="settings-app-version"></div>
+                </div>
+              </div>
+              <dl id="settings-about-list" class="settings-info-list"></dl>
+              <h4 class="settings-subsection-title" data-i18n>Updates</h4>
+              <div id="settings-update-status" class="settings-update-status" data-i18n>Checking for updates...</div>
+              <div class="settings-actions">
+                <button id="btn-check-updates" type="button" class="settings-btn" data-i18n>Check for updates</button>
+                <button id="btn-download-update" type="button" class="settings-btn settings-btn-primary hidden" data-i18n>Download update</button>
+                <button id="btn-install-update" type="button" class="settings-btn settings-btn-primary hidden" data-i18n>Restart and install</button>
+              </div>
+              <h4 class="settings-subsection-title" data-i18n>Data</h4>
+              <p class="settings-panel-hint" data-i18n>Remove all local configuration and reset the app to factory defaults.</p>
+              <div class="settings-actions">
+                <button id="btn-factory-reset" type="button" class="settings-btn settings-btn-danger" data-i18n>Erase all data</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <main id="shell-content" class="shell-content hidden">
       <section id="panel-home" class="panel hidden" data-panel="home">
@@ -170,35 +323,6 @@
         </div>
         <div id="downloads-list" class="panel-list"></div>
         <div id="downloads-empty" class="panel-empty hidden" data-i18n>No downloads recorded.</div>
-      </section>
-
-      <section id="panel-settings" class="panel hidden" data-panel="settings">
-        <div class="panel-header">
-          <h1 data-i18n>Settings</h1>
-          <p class="panel-subtitle" data-i18n>About this app and software updates</p>
-        </div>
-
-        <div class="settings-section">
-          <h2 class="settings-section-title" data-i18n>About</h2>
-          <div class="settings-about-brand">
-            <img id="settings-app-icon" class="settings-app-icon" src="../../icon.png" alt="" />
-            <div class="settings-about-brand-text">
-              <div id="settings-app-name" class="settings-app-name">adoo IoT</div>
-              <div id="settings-app-version" class="settings-app-version"></div>
-            </div>
-          </div>
-          <dl id="settings-about-list" class="settings-info-list"></dl>
-        </div>
-
-        <div class="settings-section">
-          <h2 class="settings-section-title" data-i18n>Updates</h2>
-          <div id="settings-update-status" class="settings-update-status" data-i18n>Checking for updates...</div>
-          <div class="settings-actions">
-            <button id="btn-check-updates" type="button" class="settings-btn" data-i18n>Check for updates</button>
-            <button id="btn-download-update" type="button" class="settings-btn settings-btn-primary hidden" data-i18n>Download update</button>
-            <button id="btn-install-update" type="button" class="settings-btn settings-btn-primary hidden" data-i18n>Restart and install</button>
-          </div>
-        </div>
       </section>
     </main>
 

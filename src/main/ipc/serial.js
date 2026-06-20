@@ -4,6 +4,8 @@ const {
   validateSerialWritePayload,
   validateSerialClosePayload,
 } = require('../../shared/validators');
+const { PERMISSION_TYPES, ensurePermission, getDialogParent } = require('../permission-service');
+const { t } = require('../../i18n');
 
 let serialportModule = null;
 const openPorts = new Map();
@@ -15,8 +17,17 @@ async function loadSerialPort() {
   return serialportModule;
 }
 
-function registerSerialHandlers(ipcMain, logVerbose) {
+function registerSerialHandlers(ipcMain, windowRegistry, logVerbose) {
+  const ensureDevices = async (actionLabel) => {
+    await ensurePermission(windowRegistry, PERMISSION_TYPES.DEVICES, {
+      browserWindow: getDialogParent(windowRegistry),
+      source: 'serial-ipc',
+      actionLabel,
+    });
+  };
+
   ipcMain.handle(IPC.SERIAL_LIST, async () => {
+    await ensureDevices(t('List serial ports'));
     const { SerialPort } = await loadSerialPort();
     const ports = await SerialPort.list();
     logVerbose('serial:list', ports.length);
@@ -30,6 +41,7 @@ function registerSerialHandlers(ipcMain, logVerbose) {
   });
 
   ipcMain.handle(IPC.SERIAL_OPEN, async (_event, payload) => {
+    await ensureDevices(t('Open serial port'));
     const result = validateSerialOpenPayload(payload);
     if (!result.valid) {
       throw new Error(result.error);
@@ -57,6 +69,7 @@ function registerSerialHandlers(ipcMain, logVerbose) {
   });
 
   ipcMain.handle(IPC.SERIAL_WRITE, async (_event, payload) => {
+    await ensureDevices(t('Write to serial port'));
     const result = validateSerialWritePayload(payload);
     if (!result.valid) {
       throw new Error(result.error);
@@ -80,6 +93,7 @@ function registerSerialHandlers(ipcMain, logVerbose) {
   });
 
   ipcMain.handle(IPC.SERIAL_CLOSE, async (_event, payload) => {
+    await ensureDevices(t('Close serial port'));
     const result = validateSerialClosePayload(payload);
     if (!result.valid) {
       throw new Error(result.error);

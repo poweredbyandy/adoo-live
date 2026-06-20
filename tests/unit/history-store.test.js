@@ -62,4 +62,24 @@ describe('history-store', () => {
     expect(updated.path).toBe('/tmp/reporte.pdf');
     expect(store.getSnapshot().downloads[0].id).toBe(entry.id);
   });
+
+  it('elimina descargas del historial y opcionalmente el archivo', () => {
+    const fs = require('fs');
+    const os = require('os');
+    const path = require('path');
+    const tempFile = path.join(os.tmpdir(), `odoo-kiosk-test-${Date.now()}.txt`);
+    fs.writeFileSync(tempFile, 'test');
+
+    const entry = store.addDownload({
+      filename: 'test.txt',
+      url: 'https://odoo.test/test.txt',
+      path: tempFile,
+      state: 'completed',
+    });
+
+    const removed = store.removeDownload(entry.id, true);
+    expect(removed.id).toBe(entry.id);
+    expect(store.downloads).toHaveLength(0);
+    expect(fs.existsSync(tempFile)).toBe(false);
+  });
 });

@@ -14,6 +14,9 @@ async function fetchLatestRelease(fetchImpl = globalThis.fetch) {
       },
     },
   );
+  if (response.status === 404) {
+    return null;
+  }
   if (!response.ok) {
     throw new Error(`GitHub release lookup failed (${response.status}).`);
   }
