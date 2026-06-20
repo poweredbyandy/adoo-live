@@ -39,6 +39,8 @@ jobs:
 
       - name: Rebuild native modules
         run: npm run rebuild
+        env:
+          CXXFLAGS: -std=c++17
 
       - name: Run tests
         run: npm test

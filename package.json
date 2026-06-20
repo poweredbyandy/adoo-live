@@ -9,8 +9,8 @@
     "start": "electron .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "rebuild": "electron-rebuild -f -w serialport,usb",
-    "postinstall": "electron-rebuild -f -w serialport,usb || true",
+    "rebuild": "node scripts/patch-usb-binding.js && electron-rebuild -f -w serialport,usb",
+    "postinstall": "node scripts/patch-usb-binding.js && electron-rebuild -f -w serialport,usb || true",
     "dist": "electron-builder",
     "dist:win": "electron-builder --win",
     "dist:linux": "electron-builder --linux",
@@ -20,7 +20,7 @@
     "electron-updater": "^6.8.9",
     "http_ece": "^1.2.0",
     "serialport": "^13.0.0",
-    "usb": "^2.14.0",
+    "usb": "^2.18.0",
     "ws": "^8.21.0"
   },
   "devDependencies": {
