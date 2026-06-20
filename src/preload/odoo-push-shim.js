@@ -51,7 +51,7 @@
     return {
       async subscribe(options) {
         if (!window.odooBrowser?.push?.subscribe) {
-          throw new Error('Odoo Kiosk push bridge unavailable');
+          throw new Error('adoo IoT push bridge unavailable');
         }
         const subscription = await window.odooBrowser.push.subscribe({
           applicationServerKey: options?.applicationServerKey

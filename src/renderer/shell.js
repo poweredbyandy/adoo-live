@@ -4,6 +4,7 @@ const TAB_TYPES = {
   LOGS: 'logs',
   HISTORY: 'history',
   DOWNLOADS: 'downloads',
+  SETTINGS: 'settings',
 };
 
 const isMenuOverlay = new URLSearchParams(window.location.search).get('overlay') === 'menu';
@@ -157,6 +158,15 @@ const elements = {
   panelLogs: document.getElementById('panel-logs'),
   panelHistory: document.getElementById('panel-history'),
   panelDownloads: document.getElementById('panel-downloads'),
+  panelSettings: document.getElementById('panel-settings'),
+  settingsAboutList: document.getElementById('settings-about-list'),
+  settingsAppIcon: document.getElementById('settings-app-icon'),
+  settingsAppName: document.getElementById('settings-app-name'),
+  settingsAppVersion: document.getElementById('settings-app-version'),
+  settingsUpdateStatus: document.getElementById('settings-update-status'),
+  btnCheckUpdates: document.getElementById('btn-check-updates'),
+  btnDownloadUpdate: document.getElementById('btn-download-update'),
+  btnInstallUpdate: document.getElementById('btn-install-update'),
   homeInstances: document.getElementById('home-instances'),
   homeEmpty: document.getElementById('home-empty'),
   homeInstanceForm: document.getElementById('home-instance-form'),
@@ -180,6 +190,22 @@ const panels = {
   [TAB_TYPES.LOGS]: elements.panelLogs,
   [TAB_TYPES.HISTORY]: elements.panelHistory,
   [TAB_TYPES.DOWNLOADS]: elements.panelDownloads,
+  [TAB_TYPES.SETTINGS]: elements.panelSettings,
+};
+
+let settingsAboutInfo = null;
+let settingsPanelLoaded = false;
+let settingsUpdateState = {
+  checking: false,
+  downloading: false,
+  updateAvailable: false,
+  upToDate: false,
+  canAutoUpdate: false,
+  readyToInstall: false,
+  currentVersion: '',
+  latestVersion: '',
+  releaseUrl: '',
+  message: '',
 };
 
 const DRAG_MIME = 'application/x-odoo-kiosk-tab';
@@ -785,6 +811,245 @@ function renderDownloads(downloads) {
   });
 }
 
+function createSettingsInfoRow(label, value) {
+  const row = document.createElement('div');
+  row.className = 'settings-info-row';
+  const term = document.createElement('dt');
+  term.textContent = label;
+  const definition = document.createElement('dd');
+  definition.textContent = value || '—';
+  row.appendChild(term);
+  row.appendChild(definition);
+  return row;
+}
+
+function getPlatformLabel(platform) {
+  if (platform === 'darwin') {
+    return 'macOS';
+  }
+  if (platform === 'win32') {
+    return 'Windows';
+  }
+  if (platform === 'linux') {
+    return 'Linux';
+  }
+  return platform || '—';
+}
+
+function renderSettingsAbout(about) {
+  if (!elements.settingsAboutList || !about) {
+    return;
+  }
+  settingsAboutInfo = about;
+  if (elements.settingsAppIcon && about.iconUrl) {
+    elements.settingsAppIcon.src = about.iconUrl;
+  }
+  if (elements.settingsAppName) {
+    elements.settingsAppName.textContent = about.productName || 'adoo IoT';
+  }
+  if (elements.settingsAppVersion) {
+    elements.settingsAppVersion.textContent = t('Version %(version)s', { version: about.version || '—' });
+  }
+  elements.settingsAboutList.innerHTML = '';
+  const rows = [
+    [t('Application'), about.productName],
+    [t('Version'), about.version],
+    [t('Device ID'), about.deviceUid],
+    [t('Hostname'), about.hostname],
+    [t('Platform'), `${getPlatformLabel(about.platform)} (${about.arch})`],
+    [t('Operating system'), about.osVersion],
+    [t('IP address'), about.ipAddress],
+    [t('Memory'), t('%(value)s GB', { value: about.totalMemoryGb })],
+    [t('CPU'), about.cpuModel],
+    [t('Electron'), about.electron],
+    [t('Node.js'), about.node],
+    [t('Install mode'), about.isPackaged ? t('Packaged app') : t('Development')],
+    [t('User data'), about.userDataPath],
+  ];
+  rows.forEach(([label, value]) => {
+    elements.settingsAboutList.appendChild(createSettingsInfoRow(label, value));
+  });
+}
+
+function renderSettingsUpdateUi() {
+  if (!elements.settingsUpdateStatus) {
+    return;
+  }
+  const state = settingsUpdateState;
+  elements.settingsUpdateStatus.classList.remove('is-success', 'is-warning', 'is-error');
+
+  let message = state.message;
+  if (!message) {
+    if (state.checking) {
+      message = t('Checking for updates...');
+    } else if (state.downloading) {
+      message = t('Downloading update... %(percent)s%%', {
+        percent: Math.round(state.downloadPercent || 0),
+      });
+    } else if (state.readyToInstall) {
+      message = t('Update %(version)s is ready to install.', { version: state.latestVersion });
+      elements.settingsUpdateStatus.classList.add('is-warning');
+    } else if (state.updateAvailable) {
+      message = t('Version %(latest)s is available. You are on %(current)s.', {
+        latest: state.latestVersion,
+        current: state.currentVersion,
+      });
+      elements.settingsUpdateStatus.classList.add('is-warning');
+    } else if (state.upToDate) {
+      message = t('You are on the latest version (%(version)s).', { version: state.currentVersion });
+      elements.settingsUpdateStatus.classList.add('is-success');
+    } else {
+      message = t('Check whether a new release is available on GitHub.');
+    }
+  } else if (state.error) {
+    elements.settingsUpdateStatus.classList.add('is-error');
+  }
+
+  elements.settingsUpdateStatus.textContent = message;
+
+  if (elements.btnCheckUpdates) {
+    elements.btnCheckUpdates.disabled = state.checking || state.downloading;
+  }
+  if (elements.btnDownloadUpdate) {
+    const showDownload = state.updateAvailable && !state.readyToInstall;
+    elements.btnDownloadUpdate.classList.toggle('hidden', !showDownload);
+    elements.btnDownloadUpdate.disabled = state.checking || state.downloading;
+    elements.btnDownloadUpdate.textContent = state.canAutoUpdate
+      ? t('Download update')
+      : t('Open release page');
+  }
+  if (elements.btnInstallUpdate) {
+    elements.btnInstallUpdate.classList.toggle('hidden', !state.readyToInstall);
+    elements.btnInstallUpdate.disabled = !state.readyToInstall;
+  }
+}
+
+async function loadSettingsPanel(forceCheck = false) {
+  if (!elements.panelSettings) {
+    return;
+  }
+  try {
+    const about = await getApi().getAboutInfo();
+    renderSettingsAbout(about);
+    settingsUpdateState.currentVersion = about.version;
+    renderSettingsUpdateUi();
+    if (forceCheck || !settingsUpdateState.upToDate) {
+      await checkSettingsUpdates();
+    }
+  } catch (error) {
+    settingsUpdateState.message = error.message || String(error);
+    settingsUpdateState.error = true;
+    renderSettingsUpdateUi();
+  }
+}
+
+async function checkSettingsUpdates() {
+  settingsUpdateState.checking = true;
+  settingsUpdateState.error = false;
+  settingsUpdateState.message = '';
+  renderSettingsUpdateUi();
+  try {
+    const result = await getApi().checkForUpdates();
+    settingsUpdateState = {
+      ...settingsUpdateState,
+      checking: false,
+      downloading: false,
+      updateAvailable: Boolean(result.updateAvailable),
+      upToDate: Boolean(result.upToDate),
+      canAutoUpdate: Boolean(result.canAutoUpdate),
+      readyToInstall: false,
+      currentVersion: result.currentVersion || settingsUpdateState.currentVersion,
+      latestVersion: result.latestVersion || '',
+      releaseUrl: result.releaseUrl || '',
+      message: '',
+      error: false,
+      downloadPercent: 0,
+    };
+  } catch (error) {
+    settingsUpdateState.checking = false;
+    settingsUpdateState.error = true;
+    settingsUpdateState.message = error.message || String(error);
+  }
+  renderSettingsUpdateUi();
+}
+
+async function downloadSettingsUpdate() {
+  settingsUpdateState.downloading = true;
+  settingsUpdateState.message = '';
+  settingsUpdateState.error = false;
+  renderSettingsUpdateUi();
+  try {
+    const result = await getApi().downloadUpdate();
+    if (result.mode === 'manual') {
+      settingsUpdateState.downloading = false;
+      settingsUpdateState.message = t('Release page opened in your browser.');
+      renderSettingsUpdateUi();
+      return;
+    }
+    settingsUpdateState.downloading = false;
+    settingsUpdateState.readyToInstall = true;
+    settingsUpdateState.message = t('Update downloaded. Restart to install.');
+    renderSettingsUpdateUi();
+  } catch (error) {
+    settingsUpdateState.downloading = false;
+    settingsUpdateState.error = true;
+    settingsUpdateState.message = error.message || String(error);
+    renderSettingsUpdateUi();
+  }
+}
+
+function handleSettingsUpdateEvent(payload) {
+  if (!payload || currentState?.activeTabType !== TAB_TYPES.SETTINGS) {
+    return;
+  }
+  if (payload.phase === 'checking') {
+    settingsUpdateState.checking = true;
+    renderSettingsUpdateUi();
+    return;
+  }
+  if (payload.phase === 'downloading') {
+    settingsUpdateState.downloading = true;
+    settingsUpdateState.downloadPercent = payload.percent || 0;
+    renderSettingsUpdateUi();
+    return;
+  }
+  if (payload.phase === 'downloaded') {
+    settingsUpdateState.downloading = false;
+    settingsUpdateState.readyToInstall = true;
+    settingsUpdateState.latestVersion = payload.latestVersion || settingsUpdateState.latestVersion;
+    renderSettingsUpdateUi();
+    return;
+  }
+  if (payload.phase === 'error') {
+    settingsUpdateState.downloading = false;
+    settingsUpdateState.checking = false;
+    settingsUpdateState.error = true;
+    settingsUpdateState.message = payload.message || t('Update failed.');
+    renderSettingsUpdateUi();
+  }
+}
+
+function bindSettingsPanel() {
+  if (elements.btnCheckUpdates) {
+    elements.btnCheckUpdates.addEventListener('click', () => {
+      checkSettingsUpdates();
+    });
+  }
+  if (elements.btnDownloadUpdate) {
+    elements.btnDownloadUpdate.addEventListener('click', () => {
+      downloadSettingsUpdate();
+    });
+  }
+  if (elements.btnInstallUpdate) {
+    elements.btnInstallUpdate.addEventListener('click', () => {
+      runAction((api) => api.installUpdate(), {
+        label: t('Restart and install'),
+        describe: () => t('Restarting...'),
+      });
+    });
+  }
+}
+
 function renderPanelContent(state) {
   const data = state.panelData || {};
   renderHomeInstances(data.instances);
@@ -1002,9 +1267,14 @@ function applyState(state) {
 
   if (odooActive) {
     hidePanels();
+    settingsPanelLoaded = false;
   } else {
     showPanel(state.activeTabType);
     renderPanelContent(state);
+    if (state.activeTabType === TAB_TYPES.SETTINGS && !settingsPanelLoaded) {
+      settingsPanelLoaded = true;
+      loadSettingsPanel(true);
+    }
   }
 
   elements.btnZoomReset.textContent = zoomToPercent(state.zoomLevel);
@@ -1412,6 +1682,7 @@ const MENU_ACTION_KEYS = {
   'open-logs': 'View logs',
   'open-history': 'Page history',
   'open-downloads': 'Download history',
+  'open-settings': 'About & updates',
   'copy-logs': 'Copy logs',
   'export-logs': 'Export logs to file',
   'clear-logs': 'Clear logs',
@@ -1450,6 +1721,9 @@ async function handleMenuAction(action, options = {}) {
       break;
     case 'open-downloads':
       await runAction((api) => api.openTab(TAB_TYPES.DOWNLOADS), { label, describe: describeBrowserState });
+      break;
+    case 'open-settings':
+      await runAction((api) => api.openTab(TAB_TYPES.SETTINGS), { label, describe: describeBrowserState });
       break;
     case 'copy-logs':
       await copyLogs();
@@ -1661,8 +1935,10 @@ function boot() {
 
     setupTabsDropZone();
     bindHomeInstanceForm();
+    bindSettingsPanel();
     api.onStateUpdate(applyState);
     api.onFindResult(updateFindStatus);
+    api.onUpdateEvent(handleSettingsUpdateEvent);
 
     api.onAction((payload) => {
       if (payload?.action === 'toggleFind' || payload?.action === 'focusFind') {

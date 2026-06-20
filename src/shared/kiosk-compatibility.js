@@ -10,6 +10,10 @@ function getOriginFromUrl(pageUrl) {
   }
 }
 
+function isNavigableOdooUrl(pageUrl) {
+  return Boolean(getOriginFromUrl(pageUrl));
+}
+
 function buildCompatibilityCheckUrl(pageUrl, appVersion) {
   const origin = getOriginFromUrl(pageUrl);
   if (!origin) {
@@ -18,4 +22,8 @@ function buildCompatibilityCheckUrl(pageUrl, appVersion) {
   return `${origin}/pba_kiosk/compatibility?app_version=${encodeURIComponent(appVersion)}`;
 }
 
-module.exports = { getOriginFromUrl, buildCompatibilityCheckUrl };
+module.exports = {
+  buildCompatibilityCheckUrl,
+  getOriginFromUrl,
+  isNavigableOdooUrl,
+};

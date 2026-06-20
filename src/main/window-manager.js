@@ -18,6 +18,7 @@ const { buildOdooDebugReloadUrl } = require('../shared/odoo-debug');
 const { attachInputShortcuts } = require('./input-shortcuts');
 const { attachContextMenu } = require('./context-menu');
 const { checkKioskCompatibilityFromWebContents } = require('./kiosk-compatibility');
+const { isNavigableOdooUrl } = require('../shared/kiosk-compatibility');
 const { attachKioskDeviceManager, stopKioskDeviceSession } = require('./kiosk-device-service');
 const { t, getLocale, getCatalog } = require('../i18n');
 
@@ -264,8 +265,7 @@ class WindowManager {
       return;
     }
     if (!this.tabs.length) {
-      const initialTab = this.createOdooTab(this.getDefaultUrl());
-      this.switchTab(initialTab.id);
+      this.openOrSwitchPanelTab(TAB_TYPES.HOME);
     }
   }
 
@@ -438,24 +438,56 @@ class WindowManager {
   }
 
   attachCompatibilityListener(view) {
+    const resolveTab = () => this.tabs.find((item) => item.view === view);
+
+    const resetTabForInvalidPage = () => {
+      const tab = resolveTab();
+      if (!tab || view.webContents.isDestroyed()) {
+        return;
+      }
+      tab.kioskCompatible = false;
+      tab.isLoading = false;
+      stopKioskDeviceSession(tab.view.webContents);
+      this.broadcastState();
+    };
+
     const runCheck = () => {
-      const tab = this.tabs.find((item) => item.view === view);
+      const tab = resolveTab();
       if (!tab || view.webContents.isDestroyed()) {
         return;
       }
       const pageUrl = view.webContents.getURL();
-      if (!pageUrl || pageUrl === 'about:blank') {
+      if (!isNavigableOdooUrl(pageUrl)) {
+        resetTabForInvalidPage();
         return;
       }
       this.updateTabCompatibility(tab, pageUrl);
     };
+
+    view.webContents.on('did-fail-load', () => {
+      resetTabForInvalidPage();
+    });
     view.webContents.on('did-navigate', runCheck);
     view.webContents.on('did-finish-load', runCheck);
     view.webContents.on('did-stop-loading', runCheck);
   }
 
+  isOdooReachabilityError(result) {
+    const detail = String(result?.error || '').toLowerCase();
+    return detail.includes('connection')
+      || detail.includes('network')
+      || detail.includes('fetch failed')
+      || detail.includes('err_connection');
+  }
+
   updateTabCompatibility(tab, pageUrl) {
     if (!isOdooTab(tab) || !tab.view) {
+      return;
+    }
+    if (!isNavigableOdooUrl(pageUrl)) {
+      tab.kioskCompatible = false;
+      stopKioskDeviceSession(tab.view.webContents);
+      this.broadcastState();
       return;
     }
     const checkId = (tab._compatCheckId = (tab._compatCheckId || 0) + 1);
@@ -463,13 +495,22 @@ class WindowManager {
       if (!this.tabs.includes(tab) || tab._compatCheckId !== checkId) {
         return;
       }
-      tab.kioskCompatible = result?.compatible === true;
+      tab.isLoading = false;
+      if (!result) {
+        tab.kioskCompatible = false;
+        stopKioskDeviceSession(tab.view.webContents);
+        this.broadcastState();
+        return;
+      }
+      tab.kioskCompatible = result.compatible === true;
       if (tab.kioskCompatible) {
         appLogger.add('info', 'kiosk', t('Instance compatible'), pageUrl);
         attachKioskDeviceManager(tab.view.webContents, true);
       } else {
         stopKioskDeviceSession(tab.view.webContents);
-        if (result) {
+        if (this.isOdooReachabilityError(result)) {
+          appLogger.add('warn', 'kiosk', t('Cannot reach Odoo instance'), pageUrl);
+        } else {
           const detail = result.status ? `HTTP ${result.status}` : (result.error || t('Unknown error'));
           appLogger.add('warn', 'kiosk', t('Instance not compatible'), pageUrl, detail);
         }

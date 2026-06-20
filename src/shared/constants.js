@@ -1,3 +1,5 @@
+const APP_DISPLAY_NAME = 'adoo IoT';
+
 const MODES = {
   KIOSK: 'kiosk',
   FREE: 'free',
@@ -15,6 +17,7 @@ const MAX_ZOOM_LEVEL = 3;
 const ZOOM_STEP = 0.5;
 
 module.exports = {
+  APP_DISPLAY_NAME,
   MODES,
   TOOLBAR_HEIGHT,
   TITLEBAR_HEIGHT,

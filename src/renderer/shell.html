@@ -4,7 +4,8 @@
     <meta charset="UTF-8" />
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Odoo Browser</title>
+    <title>adoo IoT</title>
+    <link rel="icon" type="image/png" href="../../icon.png" />
     <link rel="stylesheet" href="shell.css" />
   </head>
   <body>
@@ -100,6 +101,7 @@
                 <option value="es" data-i18n>Spanish</option>
               </select>
             </label>
+            <button class="menu-item" data-action="open-settings" data-i18n>About &amp; updates</button>
           </div>
           <div class="menu-section">
             <span class="menu-label" data-i18n>Help</span>
@@ -168,6 +170,35 @@
         </div>
         <div id="downloads-list" class="panel-list"></div>
         <div id="downloads-empty" class="panel-empty hidden" data-i18n>No downloads recorded.</div>
+      </section>
+
+      <section id="panel-settings" class="panel hidden" data-panel="settings">
+        <div class="panel-header">
+          <h1 data-i18n>Settings</h1>
+          <p class="panel-subtitle" data-i18n>About this app and software updates</p>
+        </div>
+
+        <div class="settings-section">
+          <h2 class="settings-section-title" data-i18n>About</h2>
+          <div class="settings-about-brand">
+            <img id="settings-app-icon" class="settings-app-icon" src="../../icon.png" alt="" />
+            <div class="settings-about-brand-text">
+              <div id="settings-app-name" class="settings-app-name">adoo IoT</div>
+              <div id="settings-app-version" class="settings-app-version"></div>
+            </div>
+          </div>
+          <dl id="settings-about-list" class="settings-info-list"></dl>
+        </div>
+
+        <div class="settings-section">
+          <h2 class="settings-section-title" data-i18n>Updates</h2>
+          <div id="settings-update-status" class="settings-update-status" data-i18n>Checking for updates...</div>
+          <div class="settings-actions">
+            <button id="btn-check-updates" type="button" class="settings-btn" data-i18n>Check for updates</button>
+            <button id="btn-download-update" type="button" class="settings-btn settings-btn-primary hidden" data-i18n>Download update</button>
+            <button id="btn-install-update" type="button" class="settings-btn settings-btn-primary hidden" data-i18n>Restart and install</button>
+          </div>
+        </div>
       </section>
     </main>
 

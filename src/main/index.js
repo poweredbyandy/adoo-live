@@ -1,4 +1,5 @@
 const { app, BrowserWindow, ipcMain, globalShortcut, Notification } = require('electron');
+const { APP_DISPLAY_NAME } = require('../shared/constants');
 const { loadConfig } = require('./config');
 const { initI18n, t } = require('../i18n');
 const { configureSession } = require('./session');
@@ -10,12 +11,15 @@ const { setupProcessLogging, appLogger } = require('./logger');
 const { webPushServer } = require('./web-push-server');
 const { setNotificationClickHandler } = require('./notification-service');
 const { disconnectAllKioskDevices } = require('./kiosk-device-service');
+const { initUpdateService } = require('./update-service');
+const { applyAppIcon } = require('./app-icon');
 
 let modeManager = null;
 let cleanupIpc = null;
 let isDisconnectingDevices = false;
 
 const gotLock = app.requestSingleInstanceLock();
+app.setName(APP_DISPLAY_NAME);
 if (!gotLock) {
   app.quit();
 }
@@ -48,6 +52,7 @@ function createMainWindow() {
 }
 
 app.whenReady().then(async () => {
+  applyAppIcon();
   if (process.platform === 'win32') {
     app.setAppUserModelId('com.andyengit.odoo-kiosk');
   }
@@ -66,6 +71,7 @@ app.whenReady().then(async () => {
   });
 
   createMainWindow();
+  initUpdateService();
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {

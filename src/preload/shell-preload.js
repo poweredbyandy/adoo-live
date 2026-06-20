@@ -38,6 +38,10 @@ contextBridge.exposeInMainWorld('shellAPI', {
   setDefaultInstance: (id) => ipcRenderer.invoke(IPC.INSTANCES_SET_DEFAULT, id),
   clearPageHistory: () => ipcRenderer.invoke(IPC.HISTORY_CLEAR_PAGE),
   setLocale: (locale) => ipcRenderer.invoke(IPC.I18N_SET_LOCALE, locale),
+  getAboutInfo: () => ipcRenderer.invoke(IPC.APP_GET_ABOUT),
+  checkForUpdates: () => ipcRenderer.invoke(IPC.UPDATE_CHECK),
+  downloadUpdate: () => ipcRenderer.invoke(IPC.UPDATE_DOWNLOAD),
+  installUpdate: () => ipcRenderer.invoke(IPC.UPDATE_INSTALL),
   showTabContextMenu: (payload) => ipcRenderer.send(IPC.SHELL_TAB_CONTEXT_MENU, payload),
   onStateUpdate: (callback) => {
     const listener = (_event, state) => callback(state);
@@ -58,5 +62,10 @@ contextBridge.exposeInMainWorld('shellAPI', {
     const listener = (_event, result) => callback(result);
     ipcRenderer.on(IPC.SHELL_FIND_RESULT, listener);
     return () => ipcRenderer.removeListener(IPC.SHELL_FIND_RESULT, listener);
+  },
+  onUpdateEvent: (callback) => {
+    const listener = (_event, payload) => callback(payload);
+    ipcRenderer.on(IPC.UPDATE_EVENT, listener);
+    return () => ipcRenderer.removeListener(IPC.UPDATE_EVENT, listener);
   },
 });

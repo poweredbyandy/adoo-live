@@ -54,6 +54,11 @@ const IPC = {
   INSTANCES_SET_DEFAULT: 'instances:setDefault',
   HISTORY_CLEAR_PAGE: 'history:clearPage',
   I18N_SET_LOCALE: 'i18n:setLocale',
+  APP_GET_ABOUT: 'app:getAbout',
+  UPDATE_CHECK: 'update:check',
+  UPDATE_DOWNLOAD: 'update:download',
+  UPDATE_INSTALL: 'update:install',
+  UPDATE_EVENT: 'update:event',
 };
 
 module.exports = { IPC };

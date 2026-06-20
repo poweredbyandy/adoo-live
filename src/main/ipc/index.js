@@ -9,6 +9,7 @@ const { registerSerialHandlers, closeAllSerialPorts } = require('./serial');
 const { registerUsbHandlers } = require('./usb');
 const { registerPrinterHandlers } = require('./printer');
 const { registerPbaKioskHandlers } = require('./pba-kiosk');
+const { registerUpdateHandlers } = require('./update');
 const {
   getInstancesSnapshot,
   addInstance,
@@ -338,6 +339,7 @@ function registerIpcHandlers(ipcMain, windowRegistry, modeManager) {
   registerUsbHandlers(ipcMain, logVerbose);
   registerPrinterHandlers(ipcMain, () => primaryManager()?.getActiveWebContents() || null, logVerbose);
   registerPbaKioskHandlers(ipcMain);
+  registerUpdateHandlers(ipcMain);
 
   return () => {
     closeAllSerialPorts();

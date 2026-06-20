@@ -1,6 +1,8 @@
 const { execFile } = require('child_process');
 const crypto = require('crypto');
 const { Notification, app } = require('electron');
+const { APP_DISPLAY_NAME } = require('../shared/constants');
+const { getAppIconPath } = require('./app-icon');
 const { appLogger } = require('./logger');
 
 let clickHandler = null;
@@ -82,14 +84,14 @@ function showNotification(payload = {}) {
   if (!Notification.isSupported()) {
     appLogger.add('warn', 'notify', 'Notificaciones no soportadas en este sistema');
     return showNativeFallback(
-      String(payload.title || 'Odoo Browser'),
+      String(payload.title || APP_DISPLAY_NAME),
       String(payload.body || ''),
       payload,
       'unsupported',
     );
   }
 
-  const title = String(payload.title || 'Odoo Browser').trim() || 'Odoo Browser';
+  const title = String(payload.title || APP_DISPLAY_NAME).trim() || APP_DISPLAY_NAME;
   const body = String(payload.body || '').trim();
   const silent = Boolean(payload.silent);
   const id = crypto.randomUUID();
@@ -103,6 +105,7 @@ function showNotification(payload = {}) {
     title,
     body,
     silent,
+    icon: getAppIconPath(),
   });
 
   activeNotifications.set(id, notification);

@@ -1,6 +1,6 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Kiosk Browser 1.0\n"
+"Project-Id-Version: adoo IoT 1.0\n"
 "Report-Msgid-Bugs-To: \n"
 "Language: es\n"
 "MIME-Version: 1.0\n"
@@ -459,6 +459,9 @@ msgstr "Instancia compatible"
 msgid "Instance not compatible"
 msgstr "Instancia no compatible"
 
+msgid "Cannot reach Odoo instance"
+msgstr "No se puede conectar con la instancia Odoo"
+
 msgid "Unknown error"
 msgstr "Error desconocido"
 
@@ -509,3 +512,117 @@ msgstr "Impresora"
 
 msgid "%(document)s → %(printer)s"
 msgstr "%(document)s → %(printer)s"
+
+msgid "About & updates"
+msgstr "Acerca de y actualizaciones"
+
+msgid "About this app and software updates"
+msgstr "Información de la aplicación y actualizaciones de software"
+
+msgid "About"
+msgstr "Acerca de"
+
+msgid "Updates"
+msgstr "Actualizaciones"
+
+msgid "Application"
+msgstr "Aplicación"
+
+msgid "Version"
+msgstr "Versión"
+
+msgid "Version %(version)s"
+msgstr "Versión %(version)s"
+
+msgid "Device ID"
+msgstr "ID del dispositivo"
+
+msgid "Hostname"
+msgstr "Nombre del equipo"
+
+msgid "Platform"
+msgstr "Plataforma"
+
+msgid "Operating system"
+msgstr "Sistema operativo"
+
+msgid "IP address"
+msgstr "Dirección IP"
+
+msgid "Memory"
+msgstr "Memoria"
+
+msgid "%(value)s GB"
+msgstr "%(value)s GB"
+
+msgid "CPU"
+msgstr "CPU"
+
+msgid "Electron"
+msgstr "Electron"
+
+msgid "Node.js"
+msgstr "Node.js"
+
+msgid "Install mode"
+msgstr "Modo de instalación"
+
+msgid "Packaged app"
+msgstr "Aplicación empaquetada"
+
+msgid "Development"
+msgstr "Desarrollo"
+
+msgid "User data"
+msgstr "Datos de usuario"
+
+msgid "Checking for updates..."
+msgstr "Comprobando actualizaciones..."
+
+msgid "Check for updates"
+msgstr "Buscar actualizaciones"
+
+msgid "Download update"
+msgstr "Descargar actualización"
+
+msgid "Restart and install"
+msgstr "Reiniciar e instalar"
+
+msgid "Downloading update... %(percent)s%%"
+msgstr "Descargando actualización... %(percent)s%%"
+
+msgid "Update %(version)s is ready to install."
+msgstr "La actualización %(version)s está lista para instalarse."
+
+msgid "Version %(latest)s is available. You are on %(current)s."
+msgstr "La versión %(latest)s está disponible. Tienes la %(current)s."
+
+msgid "You are on the latest version (%(version)s)."
+msgstr "Tienes la última versión (%(version)s)."
+
+msgid "Check whether a new release is available on GitHub."
+msgstr "Comprueba si hay una nueva versión publicada en GitHub."
+
+msgid "Open release page"
+msgstr "Abrir página de la versión"
+
+msgid "Release page opened in your browser."
+msgstr "Se abrió la página de la versión en el navegador."
+
+msgid "Update downloaded. Restart to install."
+msgstr "Actualización descargada. Reinicia para instalar."
+
+msgid "Update failed."
+msgstr "No se pudo actualizar."
+
+msgid "Restarting..."
+msgstr "Reiniciando..."
+
+msgid "You are already on the latest version."
+msgstr "Ya tienes la última versión."
+
+msgid "Automatic installation is only available in the packaged app."
+msgstr "La instalación automática solo está disponible en la app empaquetada."
+
+msgid "Auto-updater check failed, falling back to GitHub API"
+msgstr "Falló la comprobación automática; se usa la API de GitHub"

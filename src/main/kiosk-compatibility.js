@@ -1,6 +1,6 @@
 const { net } = require('electron');
 const { getOdooSession } = require('./session');
-const { buildCompatibilityCheckUrl } = require('../shared/kiosk-compatibility');
+const { buildCompatibilityCheckUrl, isNavigableOdooUrl } = require('../shared/kiosk-compatibility');
 
 const APP_VERSION = require('../../package.json').version;
 
@@ -34,7 +34,7 @@ async function checkKioskCompatibilityFromWebContents(webContents, appVersion = 
     return null;
   }
   const pageUrl = webContents.getURL();
-  if (!pageUrl || pageUrl.startsWith('about:')) {
+  if (!isNavigableOdooUrl(pageUrl)) {
     return null;
   }
   try {
