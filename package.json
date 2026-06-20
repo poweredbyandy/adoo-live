@@ -8,6 +8,7 @@
     "email": "andyengit@users.noreply.github.com"
   },
   "maintainer": "andyengit <andyengit@users.noreply.github.com>",
+  "desktopName": "adoo-iot",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
@@ -74,7 +75,6 @@
       ],
       "category": "Office",
       "maintainer": "andyengit <andyengit@users.noreply.github.com>",
-      "desktopName": "adoo-iot",
       "syncDesktopName": true
     }
   }
