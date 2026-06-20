@@ -6,6 +6,24 @@ const { TAB_TYPES } = require('../../src/shared/tab-types');
 
 const RENDERER_DIR = path.join(__dirname, '../../src/renderer');
 const SHELL_HTML_PATH = path.join(RENDERER_DIR, 'shell.html');
+const SHELL_STYLE_FILES = [
+  'ui/tokens.css',
+  'ui/base.css',
+  'ui/components.css',
+  'ui/shell-chrome.css',
+];
+
+function buildShellHtmlForDom() {
+  let html = fs.readFileSync(SHELL_HTML_PATH, 'utf8');
+  html = html.replace(/<link\b[^>]*>/gi, '');
+  html = html.replace(/<script\b[^>]*src=[^>]*>\s*<\/script>/gi, '');
+  const inlineStyles = SHELL_STYLE_FILES.map((relativePath) => {
+    const css = fs.readFileSync(path.join(RENDERER_DIR, relativePath), 'utf8');
+    return `<style data-shell-test-css="${relativePath}">${css}</style>`;
+  }).join('\n');
+  html = html.replace('</head>', `${inlineStyles}\n</head>`);
+  return html;
+}
 
 function normalizeTabsForState(tabs, activeTabId, canHaveTabs) {
   return tabs.map((tab) => ({
@@ -334,6 +352,26 @@ function installShellGlobals() {
   if (!navigator.clipboard) {
     navigator.clipboard = { writeText: async () => {} };
   }
+  if (!window.__shellTestFetchInstalled) {
+    const nativeFetch = typeof window.fetch === 'function' ? window.fetch.bind(window) : null;
+    window.fetch = async (input, init) => {
+      const url = String(input);
+      if (
+        url.includes('localhost')
+        || url.endsWith('.css')
+        || url.endsWith('.png')
+        || url.includes('/ui/')
+      ) {
+        const contentType = url.endsWith('.css') ? 'text/css' : 'application/octet-stream';
+        return new Response('', { status: 200, headers: { 'Content-Type': contentType } });
+      }
+      if (nativeFetch) {
+        return nativeFetch(input, init);
+      }
+      return new Response('', { status: 200 });
+    };
+    window.__shellTestFetchInstalled = true;
+  }
 }
 
 function loadRendererScript(relativePath) {
@@ -344,7 +382,7 @@ function loadRendererScript(relativePath) {
 
 async function loadShell(stateOverrides = {}) {
   installShellGlobals();
-  const html = fs.readFileSync(SHELL_HTML_PATH, 'utf8');
+  const html = buildShellHtmlForDom();
   document.open();
   document.write(html);
   document.close();
