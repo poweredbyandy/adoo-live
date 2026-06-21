@@ -16,6 +16,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+## [1.0.0-beta.9]
+
+### Other
+
+- Add developer mode and toggle DevTools functionality
+
+### Other
+
+- Add developer mode and toggle DevTools functionality
+
+### Added
+
+### Changed
+
+### Fixed
+
 ## [1.0.0-beta.8]
 
 ### Other
