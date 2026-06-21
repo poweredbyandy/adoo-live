@@ -1741,14 +1741,45 @@ html.menu-overlay-host.platform-linux .menu-drawer {
 .settings-permission-device-text {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 6px;
   min-width: 0;
+}
+
+.settings-permission-device-title-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
 }
 
 .settings-permission-device-label {
   font-size: 13px;
   font-weight: 500;
   color: var(--text);
+  word-break: break-word;
+}
+
+.settings-permission-device-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--accent);
+  border: 1px solid rgba(88, 101, 242, 0.35);
+}
+
+.settings-permission-device-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.settings-permission-device-field {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.45;
   word-break: break-word;
 }
 

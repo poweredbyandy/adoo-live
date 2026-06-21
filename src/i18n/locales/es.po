@@ -798,6 +798,69 @@ msgstr "+%(count)s más"
 msgid "websocket devices"
 msgstr "dispositivos por websocket"
 
+msgid "Name"
+msgstr "Nombre"
+
+msgid "Display name"
+msgstr "Nombre visible"
+
+msgid "Driver"
+msgstr "Controlador"
+
+msgid "Status"
+msgstr "Estado"
+
+msgid "Connection"
+msgstr "Conexión"
+
+msgid "Location"
+msgstr "Ubicación"
+
+msgid "Path"
+msgstr "Ruta"
+
+msgid "Manufacturer"
+msgstr "Fabricante"
+
+msgid "Serial number"
+msgstr "Número de serie"
+
+msgid "Vendor ID"
+msgstr "ID de fabricante"
+
+msgid "Product ID"
+msgstr "ID de producto"
+
+msgid "PnP ID"
+msgstr "ID PnP"
+
+msgid "Location ID"
+msgstr "ID de ubicación"
+
+msgid "Product"
+msgstr "Producto"
+
+msgid "Bus"
+msgstr "Bus"
+
+msgid "Address"
+msgstr "Dirección"
+
+msgid "Ready"
+msgstr "Lista"
+
+msgid "Offline"
+msgstr "Desconectada"
+
+msgid "Unknown"
+msgstr "Desconocido"
+
+msgid "Network"
+msgstr "Red"
+
+msgid "USB"
+msgstr "USB"
+
 msgid "Granted on %(date)s"
 msgstr "Concedido el %(date)s"
 

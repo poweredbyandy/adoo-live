@@ -998,6 +998,47 @@ function formatStorageBytes(bytes) {
   return `${(value / (1024 * 1024 * 1024)).toFixed(2)} GB`;
 }
 
+const PERMISSION_DEVICE_FIELD_LABELS = {
+  name: 'Name',
+  displayName: 'Display name',
+  driver: 'Driver',
+  status: 'Status',
+  connection: 'Connection',
+  location: 'Location',
+  path: 'Path',
+  manufacturer: 'Manufacturer',
+  serialNumber: 'Serial number',
+  vendorId: 'Vendor ID',
+  productId: 'Product ID',
+  pnpId: 'PnP ID',
+  locationId: 'Location ID',
+  product: 'Product',
+  bus: 'Bus',
+  address: 'Address',
+};
+
+const PERMISSION_DEVICE_STATUS_LABELS = {
+  ready: 'Ready',
+  offline: 'Offline',
+  unknown: 'Unknown',
+};
+
+const PERMISSION_DEVICE_CONNECTION_LABELS = {
+  usb: 'USB',
+  network: 'Network',
+  unknown: 'Unknown',
+};
+
+function formatPermissionDeviceFieldValue(key, value) {
+  if (key === 'status') {
+    return t(PERMISSION_DEVICE_STATUS_LABELS[value] || value);
+  }
+  if (key === 'connection') {
+    return t(PERMISSION_DEVICE_CONNECTION_LABELS[value] || value);
+  }
+  return String(value);
+}
+
 function createPermissionDeviceRow(device, category) {
   const row = document.createElement('label');
   row.className = 'settings-permission-device-item';
@@ -1013,25 +1054,43 @@ function createPermissionDeviceRow(device, category) {
   const text = document.createElement('span');
   text.className = 'settings-permission-device-text';
 
+  const titleRow = document.createElement('span');
+  titleRow.className = 'settings-permission-device-title-row';
+
   const label = document.createElement('span');
   label.className = 'settings-permission-device-label';
   label.textContent = device.label || device.id;
+  titleRow.appendChild(label);
 
-  const detail = document.createElement('span');
-  detail.className = 'settings-permission-device-detail';
-  const detailParts = [];
   if (device.isDefault) {
-    detailParts.push(t('Default'));
+    const badge = document.createElement('span');
+    badge.className = 'settings-permission-device-badge';
+    badge.textContent = t('Default');
+    titleRow.appendChild(badge);
   }
-  if (device.detail) {
-    detailParts.push(device.detail);
-  }
-  detail.textContent = detailParts.join(' · ');
 
-  text.appendChild(label);
-  if (detail.textContent) {
+  text.appendChild(titleRow);
+
+  const fields = device.fields || {};
+  const fieldEntries = Object.entries(fields);
+  if (fieldEntries.length) {
+    const fieldsList = document.createElement('span');
+    fieldsList.className = 'settings-permission-device-fields';
+    fieldEntries.forEach(([key, value]) => {
+      const line = document.createElement('span');
+      line.className = 'settings-permission-device-field';
+      const fieldLabel = t(PERMISSION_DEVICE_FIELD_LABELS[key] || key);
+      line.textContent = `${fieldLabel}: ${formatPermissionDeviceFieldValue(key, value)}`;
+      fieldsList.appendChild(line);
+    });
+    text.appendChild(fieldsList);
+  } else if (device.detail) {
+    const detail = document.createElement('span');
+    detail.className = 'settings-permission-device-detail';
+    detail.textContent = device.detail;
     text.appendChild(detail);
   }
+
   row.appendChild(input);
   row.appendChild(text);
   return row;

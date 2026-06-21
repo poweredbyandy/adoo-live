@@ -804,6 +804,69 @@ msgstr "+%(count)s more"
 msgid "websocket devices"
 msgstr "websocket devices"
 
+msgid "Name"
+msgstr "Name"
+
+msgid "Display name"
+msgstr "Display name"
+
+msgid "Driver"
+msgstr "Driver"
+
+msgid "Status"
+msgstr "Status"
+
+msgid "Connection"
+msgstr "Connection"
+
+msgid "Location"
+msgstr "Location"
+
+msgid "Path"
+msgstr "Path"
+
+msgid "Manufacturer"
+msgstr "Manufacturer"
+
+msgid "Serial number"
+msgstr "Serial number"
+
+msgid "Vendor ID"
+msgstr "Vendor ID"
+
+msgid "Product ID"
+msgstr "Product ID"
+
+msgid "PnP ID"
+msgstr "PnP ID"
+
+msgid "Location ID"
+msgstr "Location ID"
+
+msgid "Product"
+msgstr "Product"
+
+msgid "Bus"
+msgstr "Bus"
+
+msgid "Address"
+msgstr "Address"
+
+msgid "Ready"
+msgstr "Ready"
+
+msgid "Offline"
+msgstr "Offline"
+
+msgid "Unknown"
+msgstr "Unknown"
+
+msgid "Network"
+msgstr "Network"
+
+msgid "USB"
+msgstr "USB"
+
 msgid "Granted on %(date)s"
 msgstr "Granted on %(date)s"
 

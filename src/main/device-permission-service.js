@@ -1,5 +1,9 @@
 const { saveUserConfig } = require('./config');
-const { buildPrinterUid } = require('./device-printers');
+const {
+  buildPrinterUid,
+  inferConnectionType,
+  mapPrinterStatus,
+} = require('./device-printers');
 const { loadSerialPort } = require('./ipc/serial');
 const { loadUsb } = require('./ipc/usb');
 const { PERMISSION_TYPES, isPermissionGranted } = require('./permission-service');
@@ -7,6 +11,40 @@ const { normalizeDeviceDenylist } = require('../shared/permission-device-denylis
 const { t } = require('../i18n');
 
 const DEVICE_CATEGORIES = ['printers', 'serial', 'usb'];
+
+function compactFields(fields) {
+  return Object.fromEntries(
+    Object.entries(fields).filter(([, value]) => value !== undefined && value !== null && String(value).trim() !== ''),
+  );
+}
+
+function formatUsbId(value) {
+  return `0x${Number(value).toString(16).padStart(4, '0').toUpperCase()}`;
+}
+
+function readUsbDeviceStrings(device) {
+  let manufacturer = '';
+  let product = '';
+  try {
+    device.open();
+    const descriptor = device.deviceDescriptor;
+    if (descriptor.iManufacturer) {
+      manufacturer = device.getStringDescriptor(descriptor.iManufacturer) || '';
+    }
+    if (descriptor.iProduct) {
+      product = device.getStringDescriptor(descriptor.iProduct) || '';
+    }
+  } catch {
+    void 0;
+  } finally {
+    try {
+      device.close();
+    } catch {
+      void 0;
+    }
+  }
+  return { manufacturer, product };
+}
 
 function buildPrinterDeviceKey(printer) {
   if (typeof printer === 'string') {
@@ -119,7 +157,15 @@ async function listSerialDevices() {
     return ports.map((port) => ({
       id: buildSerialDeviceKey(port),
       label: port.path,
-      detail: [port.manufacturer, port.serialNumber].filter(Boolean).join(' · '),
+      fields: compactFields({
+        path: port.path,
+        manufacturer: port.manufacturer,
+        serialNumber: port.serialNumber,
+        vendorId: port.vendorId,
+        productId: port.productId,
+        pnpId: port.pnpId,
+        locationId: port.locationId,
+      }),
     }));
   } catch {
     return [];
@@ -129,19 +175,31 @@ async function listSerialDevices() {
 async function listUsbDevices() {
   try {
     const usb = await loadUsb();
-    return usb.getDeviceList().map((device) => ({
-      id: buildUsbDeviceKey({
-        vendorId: device.deviceDescriptor.idVendor,
-        productId: device.deviceDescriptor.idProduct,
-        busNumber: device.busNumber,
-        deviceAddress: device.deviceAddress,
-      }),
-      label: `USB ${device.deviceDescriptor.idVendor.toString(16)}:${device.deviceDescriptor.idProduct.toString(16)}`,
-      detail: t('Bus %(bus)s · address %(address)s', {
-        bus: device.busNumber,
-        address: device.deviceAddress,
-      }),
-    }));
+    return usb.getDeviceList().map((device) => {
+      const vendorId = device.deviceDescriptor.idVendor;
+      const productId = device.deviceDescriptor.idProduct;
+      const { manufacturer, product } = readUsbDeviceStrings(device);
+      const label = product
+        || manufacturer
+        || `USB ${formatUsbId(vendorId)}:${formatUsbId(productId)}`;
+      return {
+        id: buildUsbDeviceKey({
+          vendorId,
+          productId,
+          busNumber: device.busNumber,
+          deviceAddress: device.deviceAddress,
+        }),
+        label,
+        fields: compactFields({
+          manufacturer,
+          product,
+          vendorId: formatUsbId(vendorId),
+          productId: formatUsbId(productId),
+          bus: String(device.busNumber),
+          address: String(device.deviceAddress),
+        }),
+      };
+    });
   } catch {
     return [];
   }
@@ -154,12 +212,27 @@ async function listPrinterDevices(windowRegistry) {
   }
   try {
     const printers = await webContents.getPrintersAsync();
-    return printers.map((printer) => ({
-      id: buildPrinterDeviceKey(printer),
-      label: printer.displayName || printer.name,
-      detail: printer.description || '',
-      isDefault: Boolean(printer.isDefault),
-    }));
+    return printers.map((printer) => {
+      const connectionType = inferConnectionType(printer);
+      const status = mapPrinterStatus(printer.status);
+      const name = printer.name || '';
+      const displayName = printer.displayName || '';
+      const driver = printer.description || '';
+      const location = printer.options?.location || printer.options?.['printer-location'] || '';
+      return {
+        id: buildPrinterDeviceKey(printer),
+        label: displayName || name || t('Printer'),
+        isDefault: Boolean(printer.isDefault),
+        fields: compactFields({
+          name,
+          displayName: displayName && displayName !== name ? displayName : '',
+          driver,
+          status,
+          connection: connectionType,
+          location,
+        }),
+      };
+    });
   } catch {
     return [];
   }
