@@ -5,12 +5,34 @@ const { IPC } = require('../shared/ipc-channels');
 const { appLogger } = require('./logger');
 const { t } = require('../i18n');
 const { showUpdateOverlay } = require('./update-overlay-window');
+const {
+  cleanupStaleUpdaterCache,
+} = require('./update-cache-service');
 
 let autoUpdater = null;
 let progressListener = null;
 let lastCheckResult = null;
 let downloadPromise = null;
 let startupCheckDone = false;
+let updateReadyToInstall = false;
+
+function isUpdaterCacheProtected() {
+  return Boolean(downloadPromise) || updateReadyToInstall;
+}
+
+async function maybeCleanupStaleUpdaterCache() {
+  if (!app.isPackaged || isUpdaterCacheProtected()) {
+    return null;
+  }
+  const result = await cleanupStaleUpdaterCache({
+    preservePending: true,
+    preserveActiveDownload: isUpdaterCacheProtected(),
+  });
+  if (result?.cleaned) {
+    appLogger.add('info', 'update', t('Updater cache cleaned'), result.pendingPath || result.cachePath || '');
+  }
+  return result;
+}
 
 function getAutoUpdater() {
   if (!autoUpdater) {
@@ -70,9 +92,11 @@ async function checkForUpdatesViaGithub() {
       source: 'github',
       noReleasesPublished: true,
     };
+    await maybeCleanupStaleUpdaterCache();
     return lastCheckResult;
   }
   lastCheckResult = normalizeGithubCheck(currentVersion, release);
+  await maybeCleanupStaleUpdaterCache();
   return lastCheckResult;
 }
 
@@ -114,6 +138,7 @@ async function checkForUpdates() {
     if (!app.isPackaged) {
       const result = await checkForUpdatesViaGithub();
       broadcastUpdateEvent({ phase: 'checked', ...result });
+      await maybeCleanupStaleUpdaterCache();
       return result;
     }
 
@@ -139,6 +164,7 @@ async function checkForUpdates() {
       source: 'auto-updater',
     };
     broadcastUpdateEvent({ phase: 'checked', ...lastCheckResult });
+    await maybeCleanupStaleUpdaterCache();
     return lastCheckResult;
   } catch (error) {
     const missingMetadata = isMissingUpdateMetadataError(error);
@@ -151,6 +177,7 @@ async function checkForUpdates() {
         result.canAutoUpdate = false;
       }
       broadcastUpdateEvent({ phase: 'checked', ...result });
+      await maybeCleanupStaleUpdaterCache();
       return result;
     } catch (fallbackError) {
       lastCheckResult = buildUpdateCheckError(currentVersion, fallbackError);
@@ -178,6 +205,7 @@ async function downloadUpdate() {
   broadcastUpdateEvent({ phase: 'downloading', percent: 0 });
   downloadPromise = getAutoUpdater().downloadUpdate()
     .then(() => {
+      updateReadyToInstall = true;
       const latestVersion = lastCheckResult?.latestVersion || getAutoUpdater().updateInfo?.version || '';
       broadcastUpdateEvent({ phase: 'downloaded', latestVersion });
       return {
@@ -244,6 +272,7 @@ function initUpdateService() {
   });
 
   updater.on('update-downloaded', (info) => {
+    updateReadyToInstall = true;
     const payload = {
       phase: 'downloaded',
       latestVersion: info.version,

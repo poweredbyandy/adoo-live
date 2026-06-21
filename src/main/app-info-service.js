@@ -1,9 +1,11 @@
 const { app } = require('electron');
 const { getSystemInfo } = require('./system-info-service');
 const { getAppIconUrl } = require('./app-icon');
+const { getUpdaterCacheInfo } = require('./update-cache-service');
 
 function getAboutInfo() {
   const system = getSystemInfo();
+  const updaterCache = getUpdaterCacheInfo();
   return {
     appName: app.getName(),
     productName: system.runtime.appName,
@@ -25,6 +27,9 @@ function getAboutInfo() {
     cpuModel: system.hardware.cpuModel,
     appPath: app.getAppPath(),
     userDataPath: app.getPath('userData'),
+    updaterCachePath: updaterCache.cachePath,
+    updaterPendingPath: updaterCache.pendingPath,
+    updaterCacheAvailable: updaterCache.available,
     isPackaged: system.runtime.isPackaged,
   };
 }

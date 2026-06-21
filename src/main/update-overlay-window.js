@@ -2,7 +2,20 @@ const path = require('path');
 const { BrowserWindow, screen } = require('electron');
 const { t } = require('../i18n');
 
+const OVERLAY_WIDTH = 296;
+const OVERLAY_HEIGHT = 228;
+
 let overlayWindow = null;
+
+function getOverlayBounds() {
+  const display = screen.getPrimaryDisplay();
+  return {
+    width: OVERLAY_WIDTH,
+    height: OVERLAY_HEIGHT,
+    x: Math.round(display.bounds.x + (display.workAreaSize.width - OVERLAY_WIDTH) / 2),
+    y: Math.round(display.bounds.y + (display.workAreaSize.height - OVERLAY_HEIGHT) / 2),
+  };
+}
 
 function showUpdateOverlay() {
   if (overlayWindow && !overlayWindow.isDestroyed()) {
@@ -11,22 +24,20 @@ function showUpdateOverlay() {
     return overlayWindow;
   }
 
-  const display = screen.getPrimaryDisplay();
+  const bounds = getOverlayBounds();
   overlayWindow = new BrowserWindow({
-    width: display.workAreaSize.width,
-    height: display.workAreaSize.height,
-    x: display.bounds.x,
-    y: display.bounds.y,
+    ...bounds,
     frame: false,
-    backgroundColor: '#00000000',
     transparent: true,
+    backgroundColor: '#00000000',
     alwaysOnTop: true,
     resizable: false,
     movable: false,
     minimizable: false,
     maximizable: false,
     closable: false,
-    fullscreen: true,
+    skipTaskbar: true,
+    hasShadow: true,
     show: false,
     webPreferences: {
       nodeIntegration: false,

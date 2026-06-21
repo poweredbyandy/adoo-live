@@ -588,6 +588,15 @@ msgstr "Desarrollo"
 msgid "User data"
 msgstr "Datos de usuario"
 
+msgid "Update cache"
+msgstr "Caché de actualizaciones"
+
+msgid "Packaged app only"
+msgstr "Solo en app empaquetada"
+
+msgid "Updater cache cleaned"
+msgstr "Caché del updater limpiada"
+
 msgid "Checking for updates..."
 msgstr "Comprobando actualizaciones..."
 

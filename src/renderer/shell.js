@@ -1364,6 +1364,7 @@ function renderSettingsAbout(about) {
     [t('Node.js'), about.node],
     [t('Install mode'), about.isPackaged ? t('Packaged app') : t('Development')],
     [t('User data'), about.userDataPath],
+    [t('Update cache'), about.updaterCacheAvailable ? about.updaterCachePath : t('Packaged app only')],
   ];
   rows.forEach(([label, value]) => {
     elements.settingsAboutList.appendChild(createSettingsInfoRow(label, value));

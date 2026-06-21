@@ -594,6 +594,15 @@ msgstr "Development"
 msgid "User data"
 msgstr "User data"
 
+msgid "Update cache"
+msgstr "Update cache"
+
+msgid "Packaged app only"
+msgstr "Packaged app only"
+
+msgid "Updater cache cleaned"
+msgstr "Updater cache cleaned"
+
 msgid "Checking for updates..."
 msgstr "Checking for updates..."
 

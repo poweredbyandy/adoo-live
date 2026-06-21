@@ -16,17 +16,9 @@
         height: 100%;
         margin: 0;
         overflow: hidden;
-        background: rgba(0, 0, 0, 0.55);
+        background: transparent;
         color: #f2f3f5;
         font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      }
-
-      .overlay {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 100%;
-        height: 100%;
         user-select: none;
       }
 
@@ -35,7 +27,8 @@
         flex-direction: column;
         align-items: center;
         gap: 12px;
-        width: min(280px, calc(100vw - 48px));
+        width: 100%;
+        height: 100%;
         padding: 20px 18px 18px;
         border-radius: 10px;
         background: #2b2d31;
@@ -82,13 +75,11 @@
     </style>
   </head>
   <body>
-    <div class="overlay">
-      <div class="card">
-        <img id="logo" class="logo" src="../../icon.png" alt="" />
-        <div class="spinner" aria-hidden="true"></div>
-        <div id="title" class="title"></div>
-        <div id="detail" class="detail"></div>
-      </div>
+    <div class="card">
+      <img id="logo" class="logo" src="../../icon.png" alt="" />
+      <div class="spinner" aria-hidden="true"></div>
+      <div id="title" class="title"></div>
+      <div id="detail" class="detail"></div>
     </div>
     <script>
       const params = new URLSearchParams(window.location.search);
