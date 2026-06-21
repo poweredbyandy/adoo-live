@@ -55,7 +55,7 @@ describe('shell-clickables registry', () => {
 
   it('cubre navegación de ajustes y segmentos de modo', () => {
     expect(SETTINGS_NAV_CLICKABLES.length).toBe(5);
-    expect(MODE_SEGMENT_CLICKABLES.length).toBe(2);
+    expect(MODE_SEGMENT_CLICKABLES.length).toBe(3);
     expect(MENU_GROUP_TOGGLES.length).toBe(3);
     expect(BACKDROP_CLICKABLES.length).toBe(2);
   });

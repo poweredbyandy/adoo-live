@@ -231,6 +231,7 @@ const SETTINGS_NAV_CLICKABLES = [
 const MODE_SEGMENT_CLICKABLES = [
   { mode: 'kiosk', label: 'Kiosk mode' },
   { mode: 'free', label: 'Window mode' },
+  { mode: 'developer', label: 'Developer mode' },
 ];
 
 const MENU_GROUP_TOGGLES = [

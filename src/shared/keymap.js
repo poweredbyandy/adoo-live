@@ -30,6 +30,12 @@ const KEYMAP = [
     label: 'Hard reload',
   },
   {
+    id: 'devtools',
+    action: 'toggleDevTools',
+    accelerator: 'CommandOrControl+Shift+I',
+    label: 'Developer tools',
+  },
+  {
     id: 'logs',
     action: 'openLogs',
     accelerator: 'CommandOrControl+Shift+L',

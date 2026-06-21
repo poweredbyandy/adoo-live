@@ -55,6 +55,9 @@ function createKeymapHandlers(windowRegistry) {
       const focused = windowRegistry.getFocused();
       focused?.reload(true);
     },
+    toggleDevTools: () => {
+      getTargetManager(windowRegistry)?.toggleDevTools();
+    },
     openLogs: () => sendShellAction(windowRegistry, 'openLogs'),
     'setMode:kiosk': () => sendShellAction(windowRegistry, 'setMode:kiosk'),
     'setMode:free': () => sendShellAction(windowRegistry, 'setMode:free'),

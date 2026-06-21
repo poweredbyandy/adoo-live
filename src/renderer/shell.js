@@ -458,6 +458,7 @@ function updateModeSwitches(activeMode) {
   if (elements.modeSegment) {
     elements.modeSegment.classList.toggle('is-kiosk', activeMode === 'kiosk');
     elements.modeSegment.classList.toggle('is-ventana', activeMode === 'free');
+    elements.modeSegment.classList.toggle('is-developer', activeMode === 'developer');
   }
   elements.modeItems.forEach((button) => {
     const isActive = button.dataset.mode === activeMode;
@@ -1927,11 +1928,7 @@ function renderTabs(tabs) {
 }
 
 async function setMode(mode) {
-  let pin;
-  if (mode === 'developer') {
-    pin = window.prompt('PIN de desarrollador (dejar vacío si no está configurado):') || undefined;
-  }
-  await runAction((api) => api.setMode(mode, pin), {
+  await runAction((api) => api.setMode(mode), {
     label: `${t('Mode changed')}: ${getModeLabel(mode)}`,
     describe: (caps) => `${t('Mode changed')}=${getModeLabel(caps.mode)}`,
   });

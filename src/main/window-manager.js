@@ -303,6 +303,46 @@ class WindowManager {
     return isOdooTab(tab) && tab.view ? tab.view.webContents : null;
   }
 
+  resolveOdooWebContents({ requireLoaded = true } = {}) {
+    const active = this.getActiveWebContents();
+    if (active && this.isUsableOdooWebContents(active, requireLoaded)) {
+      return active;
+    }
+    for (let index = this.tabs.length - 1; index >= 0; index -= 1) {
+      const tab = this.tabs[index];
+      if (!isOdooTab(tab) || !tab.view) {
+        continue;
+      }
+      const webContents = tab.view.webContents;
+      if (this.isUsableOdooWebContents(webContents, requireLoaded)) {
+        return webContents;
+      }
+    }
+    return null;
+  }
+
+  isUsableOdooWebContents(webContents, requireLoaded) {
+    if (!webContents || webContents.isDestroyed()) {
+      return false;
+    }
+    if (!requireLoaded) {
+      return true;
+    }
+    const pageUrl = webContents.getURL();
+    return Boolean(pageUrl && pageUrl !== 'about:blank' && isNavigableOdooUrl(pageUrl));
+  }
+
+  resolveDevToolsTarget() {
+    const odooContents = this.resolveOdooWebContents({ requireLoaded: false });
+    if (odooContents) {
+      return odooContents;
+    }
+    if (this.window && !this.window.isDestroyed()) {
+      return this.window.webContents;
+    }
+    return null;
+  }
+
   hideAllContentViews() {
     if (!this.window) {
       return;
@@ -1118,7 +1158,7 @@ class WindowManager {
   }
 
   setOdooDebug(level) {
-    const webContents = this.getActiveWebContents();
+    const webContents = this.resolveOdooWebContents({ requireLoaded: true });
     if (!webContents) {
       throw new Error('No hay pestaña Odoo activa');
     }
@@ -1212,7 +1252,7 @@ class WindowManager {
   }
 
   toggleDevTools() {
-    const webContents = this.getActiveWebContents();
+    const webContents = this.resolveDevToolsTarget();
     if (!webContents) {
       return false;
     }
@@ -1245,14 +1285,18 @@ class WindowManager {
       this.switchTab(odooTab.id);
     }
 
-    const webContents = this.getActiveWebContents();
-    if (webContents) {
-      webContents.session.setSpellCheckerEnabled(mode !== 'kiosk');
-      if (shouldAutoOpenDevTools(mode) && !webContents.isDevToolsOpened()) {
-        webContents.openDevTools({ mode: 'detach' });
+    const activeWebContents = this.getActiveWebContents();
+    if (activeWebContents) {
+      activeWebContents.session.setSpellCheckerEnabled(mode !== 'kiosk');
+    }
+
+    const devToolsTarget = this.resolveDevToolsTarget();
+    if (devToolsTarget) {
+      if (shouldAutoOpenDevTools(mode) && !devToolsTarget.isDevToolsOpened()) {
+        devToolsTarget.openDevTools({ mode: 'detach' });
       }
-      if (!shouldAutoOpenDevTools(mode) && shouldAutoOpenDevTools(previousMode) && webContents.isDevToolsOpened()) {
-        webContents.closeDevTools();
+      if (!shouldAutoOpenDevTools(mode) && shouldAutoOpenDevTools(previousMode) && devToolsTarget.isDevToolsOpened()) {
+        devToolsTarget.closeDevTools();
       }
     }
 
