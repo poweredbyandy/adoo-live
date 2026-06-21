@@ -16,6 +16,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+## [1.0.0-beta.7]
+
+### Other
+
+- Update configuration and localization for instance management
+
+### Other
+
+- Update configuration and localization for instance management
+
+### Added
+
+### Changed
+
+### Fixed
+
 ## [1.0.0-beta.6]
 
 ### Other
