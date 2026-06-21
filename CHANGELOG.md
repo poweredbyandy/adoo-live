@@ -16,6 +16,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+## [1.0.0-beta.8]
+
+### Other
+
+- Refactor update service and version utilities for improved version handling
+
+### Other
+
+- Refactor update service and version utilities for improved version handling
+
+### Added
+
+### Changed
+
+### Fixed
+
 ## [1.0.0-beta.7]
 
 ### Other
