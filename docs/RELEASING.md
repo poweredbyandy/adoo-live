@@ -146,6 +146,52 @@ npm run dist:validate:mac
 
 Los `.blockmap` son opcionales; el script falla si falta el instalador o el `latest*.yml` de la plataforma.
 
+## macOS: «La app está dañada» (Gatekeeper)
+
+Si macOS muestra **«adoo IoT está dañado y no puede abrirse»**, la app **no está corrupta**: Gatekeeper bloquea binarios descargados que **no están firmados y notarizados** con Apple. Los releases actuales se construyen sin certificado en CI (`CSC_IDENTITY_AUTO_DISCOVERY` desactivado para Windows/Linux; en macOS solo firma si existen los secrets).
+
+### Abrir la app ahora (workaround)
+
+1. **Clic derecho** sobre `adoo IoT.app` → **Abrir** → confirmar (solo la primera vez), o
+2. En terminal, quitar la cuarentena de descarga:
+
+```bash
+xattr -dr com.apple.quarantine "/Applications/adoo IoT.app"
+```
+
+Sustituye la ruta si la app está en Descargas o en el `.dmg` montado.
+
+### Releases firmados (recomendado para usuarios finales)
+
+Configura estos **GitHub repository secrets** y vuelve a publicar un tag:
+
+| Secret | Contenido |
+|--------|-----------|
+| `MACOS_CERTIFICATE` | Certificado **Developer ID Application** exportado como `.p12` en **base64** |
+| `MACOS_CERTIFICATE_PASSWORD` | Contraseña del `.p12` |
+| `APPLE_ID` | Apple ID del equipo de desarrollo |
+| `APPLE_APP_SPECIFIC_PASSWORD` | Contraseña de app ([appleid.apple.com](https://appleid.apple.com)) |
+| `APPLE_TEAM_ID` | Team ID (Membership de Apple Developer) |
+
+Exportar certificado a base64:
+
+```bash
+base64 -i developer-id-application.p12 | pbcopy
+```
+
+El workflow **Release** firmará, aplicará **hardened runtime** (`build/entitlements.mac.plist`) y **notarizará** el `.dmg`/`.zip` de macOS cuando esos secrets existan. Sin ellos, el build sigue siendo válido pero macOS pedirá el workaround anterior.
+
+### Build local firmado en tu Mac
+
+Con el certificado **Developer ID Application** en el llavero:
+
+```bash
+export CSC_IDENTITY_AUTO_DISCOVERY=true
+npm run dist:mac
+```
+
+electron-builder detectará el certificado y notará si también defines `APPLE_ID`, `APPLE_APP_SPECIFIC_PASSWORD` y `APPLE_TEAM_ID`.
+
 ## Generar release en GitHub
 
 Script `scripts/github-release.sh` (alias `scripts/release-local.sh`). Solo requiere **git** y **npm**. [GitHub CLI](https://cli.github.com/) (`gh`) es opcional para vigilar el workflow hasta que termine (`brew install gh && gh auth login`).
