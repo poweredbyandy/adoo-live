@@ -109,26 +109,44 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p release-artifacts
+
+          copy_glob() {
+            shopt -s nullglob
+            local matches=("$@")
+            shopt -u nullglob
+            if [ ${#matches[@]} -gt 0 ]; then
+              cp "${matches[@]}" release-artifacts/
+            fi
+          }
+
           case "${{ matrix.platform }}" in
             mac)
-              shopt -s nullglob
-              cp dist/*.dmg release-artifacts/
-              cp dist/*-mac.zip release-artifacts/
-              cp dist/latest-mac.yml release-artifacts/
+              copy_glob dist/*.dmg
+              copy_glob dist/*.zip
+              copy_glob dist/latest-mac.yml
               ;;
             linux)
-              shopt -s nullglob
-              cp dist/*.AppImage release-artifacts/
-              cp dist/*.deb release-artifacts/
-              cp dist/latest-linux.yml release-artifacts/
+              copy_glob dist/*.AppImage
+              copy_glob dist/*.deb
+              copy_glob dist/latest-linux.yml
               ;;
             win)
-              shopt -s nullglob
-              cp dist/*.exe release-artifacts/
-              cp dist/latest.yml release-artifacts/
+              copy_glob dist/*.exe
+              copy_glob dist/latest.yml
               ;;
           esac
-          cp dist/*.blockmap release-artifacts/ 2>/dev/null || true
+          copy_glob dist/*.blockmap
+          case "${{ matrix.platform }}" in
+            mac)
+              test -f release-artifacts/latest-mac.yml
+              ;;
+            linux)
+              test -f release-artifacts/latest-linux.yml
+              ;;
+            win)
+              test -f release-artifacts/latest.yml
+              ;;
+          esac
           if [ -z "$(ls -A release-artifacts)" ]; then
             echo "No release artifacts found in dist/" >&2
             ls -la dist/ || true
