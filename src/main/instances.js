@@ -46,14 +46,34 @@ function sanitizeInstanceEntry(entry) {
   };
 }
 
-function resolveInstancesConfig(config) {
+function shouldSeedInstanceFromBaseUrl(config, usingDefaultFile) {
+  if (usingDefaultFile) {
+    return false;
+  }
+  const baseUrl = String(config.baseUrl || '').trim();
+  if (!baseUrl) {
+    return false;
+  }
+  const seed = extractInstance(baseUrl);
+  if (!seed) {
+    return false;
+  }
+  const defaultLocal = extractInstance(FALLBACK_BASE_URL);
+  if (defaultLocal && seed.origin === defaultLocal.origin) {
+    return false;
+  }
+  return true;
+}
+
+function resolveInstancesConfig(config, options = {}) {
+  const usingDefaultFile = Boolean(options.usingDefaultFile);
   const merged = { ...config };
   let instances = Array.isArray(merged.instances)
     ? merged.instances.map(sanitizeInstanceEntry).filter(Boolean)
     : [];
 
-  if (!instances.length) {
-    const seed = extractInstance(merged.baseUrl || FALLBACK_BASE_URL);
+  if (!instances.length && shouldSeedInstanceFromBaseUrl(merged, usingDefaultFile)) {
+    const seed = extractInstance(merged.baseUrl);
     if (seed) {
       const id = createInstanceId();
       instances = [{
@@ -67,18 +87,25 @@ function resolveInstancesConfig(config) {
     }
   }
 
-  const knownIds = new Set(instances.map((item) => item.id));
-  if (!knownIds.has(merged.defaultInstanceId)) {
-    merged.defaultInstanceId = instances[0]?.id || null;
-  }
-
   merged.instances = instances;
-  merged.baseUrl = getDefaultBaseUrl(merged);
+  if (!instances.length) {
+    merged.defaultInstanceId = null;
+    merged.baseUrl = null;
+  } else {
+    const knownIds = new Set(instances.map((item) => item.id));
+    if (!knownIds.has(merged.defaultInstanceId)) {
+      merged.defaultInstanceId = instances[0]?.id || null;
+    }
+    merged.baseUrl = getDefaultBaseUrl(merged);
+  }
   return merged;
 }
 
 function getDefaultBaseUrl(config) {
   const instances = Array.isArray(config?.instances) ? config.instances : [];
+  if (!instances.length) {
+    return '';
+  }
   const selected = instances.find((item) => item.id === config?.defaultInstanceId);
   if (selected?.baseUrl) {
     return selected.baseUrl;
@@ -86,7 +113,7 @@ function getDefaultBaseUrl(config) {
   if (instances[0]?.baseUrl) {
     return instances[0].baseUrl;
   }
-  return config?.baseUrl || FALLBACK_BASE_URL;
+  return config?.baseUrl || '';
 }
 
 function getInstancesSnapshot(config) {
@@ -94,7 +121,7 @@ function getInstancesSnapshot(config) {
   return {
     items: resolved.instances,
     defaultInstanceId: resolved.defaultInstanceId,
-    defaultBaseUrl: resolved.baseUrl,
+    defaultBaseUrl: getDefaultBaseUrl(resolved) || null,
   };
 }
 
@@ -105,7 +132,7 @@ function persistInstances(instances, defaultInstanceId) {
   const nextDefaultId = knownIds.has(defaultInstanceId) ? defaultInstanceId : (items[0]?.id || null);
   const defaultBaseUrl = items.find((item) => item.id === nextDefaultId)?.baseUrl
     || items[0]?.baseUrl
-    || FALLBACK_BASE_URL;
+    || null;
 
   const patch = {
     instances: items.map(({ id, label, baseUrl, host, origin }) => ({
@@ -182,7 +209,7 @@ function updateInstance(config, id, patch = {}) {
 function removeInstance(config, id) {
   const instances = loadInstancesFromConfig(config).filter((item) => item.id !== id);
   if (!instances.length) {
-    throw new Error('Debe quedar al menos una instancia configurada');
+    return persistInstances([], null);
   }
   const defaultInstanceId = config.defaultInstanceId === id ? instances[0].id : config.defaultInstanceId;
   return persistInstances(instances, defaultInstanceId);

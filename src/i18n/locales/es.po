@@ -309,6 +309,9 @@ msgstr "Panel inicio"
 msgid "Application starting"
 msgstr "Iniciando aplicación"
 
+msgid "No instances configured"
+msgstr "Sin instancias configuradas"
+
 msgid "Native notifications available"
 msgstr "Notificaciones nativas disponibles"
 

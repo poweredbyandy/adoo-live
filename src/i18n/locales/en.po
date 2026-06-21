@@ -309,6 +309,9 @@ msgstr "Home panel"
 msgid "Application starting"
 msgstr "Application starting"
 
+msgid "No instances configured"
+msgstr "No instances configured"
+
 msgid "Native notifications available"
 msgstr "Native notifications available"
 

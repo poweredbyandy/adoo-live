@@ -1070,17 +1070,21 @@ class WindowManager {
   }
 
   navigate(url) {
+    const targetUrl = String(url || '').trim();
+    if (!targetUrl) {
+      return;
+    }
     const tab = this.getActiveTab();
     if (!isOdooTab(tab)) {
-      this.openUrlInNewOdooTab(url);
+      this.openUrlInNewOdooTab(targetUrl);
       return;
     }
     const webContents = tab.view.webContents;
-    if (isNavigationRestricted(this.modeManager.getMode()) && !isUrlAllowed(url, this.config.kioskAllowedHosts)) {
+    if (isNavigationRestricted(this.modeManager.getMode()) && !isUrlAllowed(targetUrl, this.config.kioskAllowedHosts)) {
       throw new Error('Navigation blocked in kiosk mode');
     }
-    appLogger.add('info', 'navigation', t('Navigating'), url);
-    webContents.loadURL(url);
+    appLogger.add('info', 'navigation', t('Navigating'), targetUrl);
+    webContents.loadURL(targetUrl);
   }
 
   goBack() {
@@ -1140,7 +1144,11 @@ class WindowManager {
       this.openOrSwitchPanelTab(TAB_TYPES.HOME);
       return;
     }
-    this.navigate(this.getDefaultUrl());
+    const url = this.getDefaultUrl();
+    if (!url) {
+      return;
+    }
+    this.navigate(url);
   }
 
   findInPage(text, options = {}) {
@@ -1282,7 +1290,7 @@ class WindowManager {
       canGoBack: canGoBack(webContents),
       canGoForward: canGoForward(webContents),
       isLoading: webContents ? webContents.isLoading() : false,
-      currentUrl: webContents ? webContents.getURL() : this.getDefaultUrl(),
+      currentUrl: webContents ? webContents.getURL() : (isOdooTab(activeTab) ? (activeTab.url || '') : ''),
       zoomLevel: this.zoomLevel,
       findBarVisible: this.findBarVisible,
       menuOpen: this.menuOpen,

@@ -4,7 +4,7 @@ const { app } = require('electron');
 const { isValidMode } = require('../shared/validators');
 
 const DEFAULTS = {
-  baseUrl: 'http://localhost:8069',
+  baseUrl: null,
   defaultMode: 'free',
   kioskAllowedHosts: ['localhost', '127.0.0.1'],
   maxTabs: 10,
@@ -51,10 +51,14 @@ function resolveStartupMode(config) {
 
 function loadConfig() {
   const { resolveInstancesConfig } = require('./instances');
+  const usingDefaultFile = !fs.existsSync(getUserConfigPath());
   try {
     const configPath = getConfigPath();
     const raw = fs.readFileSync(configPath, 'utf8');
-    const merged = resolveInstancesConfig({ ...DEFAULTS, ...JSON.parse(raw) });
+    const merged = resolveInstancesConfig(
+      { ...DEFAULTS, ...JSON.parse(raw) },
+      { usingDefaultFile },
+    );
     return {
       ...merged,
       startupMode: resolveStartupMode(merged),
@@ -63,7 +67,7 @@ function loadConfig() {
     return resolveInstancesConfig({
       ...DEFAULTS,
       startupMode: DEFAULTS.defaultMode,
-    });
+    }, { usingDefaultFile: true });
   }
 }
 

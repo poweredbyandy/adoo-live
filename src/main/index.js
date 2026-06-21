@@ -36,7 +36,7 @@ function bootstrapApp() {
   setupProcessLogging();
   const config = loadConfig();
   initI18n(config.uiLanguage);
-  appLogger.add('info', 'app', t('Application starting'), config.baseUrl);
+  appLogger.add('info', 'app', t('Application starting'), config.baseUrl || t('No instances configured'));
   appLogger.add(
     'info',
     'notify',

@@ -30,6 +30,19 @@ describe('instances', () => {
     expect(getDefaultBaseUrl(resolved)).toBe('https://legacy.odoo.test');
   });
 
+  it('no precarga instancias en la configuración por defecto', () => {
+    const resolved = resolveInstancesConfig({}, { usingDefaultFile: true });
+    expect(resolved.instances).toHaveLength(0);
+    expect(resolved.defaultInstanceId).toBeNull();
+    expect(getDefaultBaseUrl(resolved)).toBe('');
+  });
+
+  it('no migra localhost por defecto a una instancia', () => {
+    const resolved = resolveInstancesConfig({ baseUrl: 'http://localhost:8069' });
+    expect(resolved.instances).toHaveLength(0);
+    expect(getDefaultBaseUrl(resolved)).toBe('');
+  });
+
   it('añade, edita, marca predeterminada y elimina instancias', () => {
     setPersistHandler(() => {});
     let config = resolveInstancesConfig({ baseUrl: 'https://one.odoo.test' });
@@ -78,5 +91,22 @@ describe('instances', () => {
     snapshot = removeInstance(config, second.id);
     expect(snapshot.items).toHaveLength(2);
     expect(snapshot.defaultInstanceId).toBe(remaining.id);
+
+    config = resolveInstancesConfig({
+      instances: snapshot.items,
+      defaultInstanceId: snapshot.defaultInstanceId,
+      baseUrl: snapshot.defaultBaseUrl,
+    });
+    snapshot = removeInstance(config, remaining.id);
+    expect(snapshot.items).toHaveLength(1);
+    config = resolveInstancesConfig({
+      instances: snapshot.items,
+      defaultInstanceId: snapshot.defaultInstanceId,
+      baseUrl: snapshot.defaultBaseUrl,
+    });
+    snapshot = removeInstance(config, snapshot.items[0].id);
+    expect(snapshot.items).toHaveLength(0);
+    expect(snapshot.defaultInstanceId).toBeNull();
+    expect(snapshot.defaultBaseUrl).toBeNull();
   });
 });
