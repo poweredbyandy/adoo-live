@@ -6,6 +6,7 @@ const {
   buildPrinterDeviceKey,
 } = require('../device-permission-service');
 const { t } = require('../../i18n');
+const { listSystemPrinters } = require('../device-printers');
 
 function buildPrintOptions(payload) {
   return {
@@ -56,11 +57,7 @@ function registerPrinterHandlers(ipcMain, windowRegistry, getActiveWebContents, 
 
   ipcMain.handle(IPC.PRINTER_LIST, async () => {
     await ensurePrinters(t('List printers'));
-    const webContents = getActiveWebContents();
-    if (!webContents) {
-      return [];
-    }
-    const printers = await webContents.getPrintersAsync();
+    const printers = await listSystemPrinters(windowRegistry);
     logVerbose('printer:list', printers.length);
     return printers.filter((printer) => isDeviceAllowed(
       windowRegistry.config,

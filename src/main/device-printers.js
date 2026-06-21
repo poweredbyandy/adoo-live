@@ -54,10 +54,58 @@ async function getPrintersPayload(webContents) {
   return printers.map((printer) => mapPrinter(printer));
 }
 
+function collectPrinterWebContents(windowRegistry) {
+  const candidates = [];
+  const seen = new Set();
+  const addCandidate = (webContents) => {
+    if (!webContents || webContents.isDestroyed()) {
+      return;
+    }
+    const key = webContents.id;
+    if (seen.has(key)) {
+      return;
+    }
+    seen.add(key);
+    candidates.push(webContents);
+  };
+
+  const managers = windowRegistry?.getAll?.() || [];
+  const focused = windowRegistry?.getFocused?.();
+  const orderedManagers = focused
+    ? [focused, ...managers.filter((manager) => manager !== focused)]
+    : managers;
+
+  for (const manager of orderedManagers) {
+    addCandidate(manager.window?.webContents);
+    addCandidate(manager.resolveOdooWebContents?.({ requireLoaded: false }));
+    for (const tab of manager.tabs || []) {
+      addCandidate(tab.view?.webContents);
+    }
+  }
+  return candidates;
+}
+
+async function listSystemPrinters(windowRegistry) {
+  const candidates = collectPrinterWebContents(windowRegistry);
+  for (const webContents of candidates) {
+    try {
+      const printers = await webContents.getPrintersAsync();
+      if (Array.isArray(printers)) {
+        return printers;
+      }
+    } catch {
+      void 0;
+    }
+  }
+  return [];
+}
+
 module.exports = {
   buildPrinterUid,
+  collectPrinterWebContents,
   getPrintersPayload,
   inferConnectionType,
+  listSystemPrinters,
   mapPrinter,
   mapPrinterStatus,
 };

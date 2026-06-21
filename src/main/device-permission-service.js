@@ -2,6 +2,7 @@ const { saveUserConfig } = require('./config');
 const {
   buildPrinterUid,
   inferConnectionType,
+  listSystemPrinters,
   mapPrinterStatus,
 } = require('./device-printers');
 const { loadSerialPort } = require('./ipc/serial');
@@ -132,24 +133,6 @@ function enabledDevice(value) {
   return Boolean(value);
 }
 
-function getActiveWebContents(windowRegistry) {
-  const manager = windowRegistry?.getFocused?.() || windowRegistry?.getAll?.()?.[0];
-  if (!manager) {
-    return null;
-  }
-  const activeTab = manager.tabs?.find((tab) => tab.id === manager.activeTabId);
-  const webContents = activeTab?.view?.webContents;
-  if (webContents && !webContents.isDestroyed()) {
-    return webContents;
-  }
-  for (const tab of manager.tabs || []) {
-    if (tab.view?.webContents && !tab.view.webContents.isDestroyed()) {
-      return tab.view.webContents;
-    }
-  }
-  return null;
-}
-
 async function listSerialDevices() {
   try {
     const { SerialPort } = await loadSerialPort();
@@ -206,12 +189,8 @@ async function listUsbDevices() {
 }
 
 async function listPrinterDevices(windowRegistry) {
-  const webContents = getActiveWebContents(windowRegistry);
-  if (!webContents) {
-    return [];
-  }
   try {
-    const printers = await webContents.getPrintersAsync();
+    const printers = await listSystemPrinters(windowRegistry);
     return printers.map((printer) => {
       const connectionType = inferConnectionType(printer);
       const status = mapPrinterStatus(printer.status);
