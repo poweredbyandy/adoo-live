@@ -49,6 +49,7 @@
       "owner": "poweredbyandy",
       "repo": "adoo-live"
     },
+    "artifactName": "adoo-IoT-${version}-${arch}.${ext}",
     "icon": "icon.png",
     "files": [
       "main.js",
@@ -64,10 +65,14 @@
       ]
     },
     "win": {
+      "artifactName": "adoo-IoT-Setup-${version}.${ext}",
       "target": [
         "nsis",
         "portable"
       ]
+    },
+    "portable": {
+      "artifactName": "adoo-IoT-${version}-portable.${ext}"
     },
     "linux": {
       "target": [

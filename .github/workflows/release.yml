@@ -111,18 +111,21 @@ jobs:
           mkdir -p release-artifacts
           case "${{ matrix.platform }}" in
             mac)
-              cp dist/*.dmg release-artifacts/ 2>/dev/null || true
-              cp dist/*-mac.zip release-artifacts/ 2>/dev/null || true
-              cp dist/latest-mac.yml release-artifacts/ 2>/dev/null || true
+              shopt -s nullglob
+              cp dist/*.dmg release-artifacts/
+              cp dist/*-mac.zip release-artifacts/
+              cp dist/latest-mac.yml release-artifacts/
               ;;
             linux)
-              cp dist/*.AppImage release-artifacts/ 2>/dev/null || true
-              cp dist/*.deb release-artifacts/ 2>/dev/null || true
-              cp dist/latest-linux.yml release-artifacts/ 2>/dev/null || true
+              shopt -s nullglob
+              cp dist/*.AppImage release-artifacts/
+              cp dist/*.deb release-artifacts/
+              cp dist/latest-linux.yml release-artifacts/
               ;;
             win)
-              cp dist/*.exe release-artifacts/ 2>/dev/null || true
-              cp dist/latest.yml release-artifacts/ 2>/dev/null || true
+              shopt -s nullglob
+              cp dist/*.exe release-artifacts/
+              cp dist/latest.yml release-artifacts/
               ;;
           esac
           cp dist/*.blockmap release-artifacts/ 2>/dev/null || true
@@ -187,6 +190,14 @@ jobs:
       - name: List release files
         run: |
           find artifacts -maxdepth 2 -type f | sort
+
+      - name: Validate update metadata
+        run: |
+          set -euo pipefail
+          test -f artifacts/win/latest.yml
+          test -f artifacts/mac/latest-mac.yml
+          test -f artifacts/linux/latest-linux.yml
+          echo "Update metadata present for Windows, macOS and Linux."
 
       - name: Create GitHub release
         uses: softprops/action-gh-release@v2

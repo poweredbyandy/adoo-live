@@ -94,6 +94,12 @@ function shouldAllowPrerelease(version) {
   return String(version || '').includes('-');
 }
 
+function isMissingUpdateMetadataError(error) {
+  const message = String(error?.message || error || '');
+  return /latest(-mac|-linux)?\.yml/i.test(message)
+    && (message.includes('404') || message.includes('Cannot find'));
+}
+
 function configureAutoUpdater(updater, currentVersion) {
   updater.autoDownload = false;
   updater.autoInstallOnAppQuit = true;
@@ -133,9 +139,17 @@ async function checkForUpdates() {
     broadcastUpdateEvent({ phase: 'checked', ...lastCheckResult });
     return lastCheckResult;
   } catch (error) {
-    appLogger.add('warn', 'update', t('Update check failed'), error.message);
+    const missingMetadata = isMissingUpdateMetadataError(error);
+    if (!missingMetadata) {
+      appLogger.add('warn', 'update', t('Update check failed'), error.message);
+    }
     try {
-      return await checkForUpdatesViaGithub();
+      const result = await checkForUpdatesViaGithub();
+      if (missingMetadata) {
+        result.canAutoUpdate = false;
+      }
+      broadcastUpdateEvent({ phase: 'checked', ...result });
+      return result;
     } catch (fallbackError) {
       lastCheckResult = buildUpdateCheckError(currentVersion, fallbackError);
       broadcastUpdateEvent({ phase: 'error', message: lastCheckResult.message });
@@ -222,6 +236,9 @@ function initUpdateService() {
   });
 
   updater.on('error', (error) => {
+    if (isMissingUpdateMetadataError(error)) {
+      return;
+    }
     const payload = {
       phase: 'error',
       message: error.message || String(error),

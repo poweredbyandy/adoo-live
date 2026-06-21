@@ -81,6 +81,8 @@ Si quieres añadir algo que no sale bien del mensaje de commit, edita `CHANGELOG
 
 Al publicar el tag, esos bullets se fusionan en la sección **Added** de la versión y `[Unreleased]` se vacía.
 
+Los binarios usan nombres URL seguros (`adoo-IoT-Setup-…`, `adoo-IoT-…`) para que coincidan con `latest.yml` / `latest-mac.yml` / `latest-linux.yml` y el auto-updater de Electron pueda descargarlos. Si un release anterior no incluye esos YAML o los nombres no coinciden, la app sigue mostrando la versión vía GitHub API pero la instalación automática queda desactivada hasta un release corregido.
+
 ## Publicar una versión
 
 ### 1. Versión en `package.json`
