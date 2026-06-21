@@ -9,6 +9,7 @@ const { appLogger } = require('./logger');
 const { t } = require('../i18n');
 const { loadConfig } = require('./config');
 const { PERMISSION_TYPES, isPermissionGranted } = require('./permission-service');
+const { isDeviceAllowed, buildPrinterDeviceKey } = require('./device-permission-service');
 
 const managers = new Map();
 
@@ -108,7 +109,11 @@ class KioskDeviceManager {
     const identity = getDeviceIdentity();
     const config = loadConfig();
     const printers = isPermissionGranted(config, PERMISSION_TYPES.PRINTERS)
-      ? await getPrintersPayload(this.webContents)
+      ? (await getPrintersPayload(this.webContents)).filter((printer) => isDeviceAllowed(
+        config,
+        'printers',
+        buildPrinterDeviceKey(printer),
+      ))
       : [];
     return {
       device_uid: identity.device_uid,

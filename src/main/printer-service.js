@@ -5,6 +5,9 @@ const { pathToFileURL } = require('url');
 const { execFile } = require('child_process');
 const { promisify } = require('util');
 const { BrowserWindow } = require('electron');
+const { loadConfig } = require('./config');
+const { PERMISSION_TYPES, isPermissionGranted } = require('./permission-service');
+const { isDeviceAllowed, buildPrinterDeviceKey } = require('./device-permission-service');
 const {
   buildPrinterUid,
   getPrintersPayload,
@@ -31,6 +34,10 @@ async function resolvePrinterName(webContents, printerUid) {
   const match = printers.find((printer) => printer.printer_uid === printerUid);
   if (!match) {
     throw new Error(`No se encontró la impresora local con printer_uid ${printerUid}.`);
+  }
+  const config = loadConfig();
+  if (!isDeviceAllowed(config, 'printers', buildPrinterDeviceKey(match))) {
+    throw new Error('Esta impresora está desactivada en Ajustes → Permisos.');
   }
   return match.name;
 }

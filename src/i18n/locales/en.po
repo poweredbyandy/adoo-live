@@ -732,6 +732,78 @@ msgstr "Camera access"
 msgid "File access"
 msgstr "File access"
 
+msgid "WebSocket device access"
+msgstr "WebSocket device access"
+
+msgid "Instances"
+msgstr "Instances"
+
+msgid "Configured Odoo instances, connection status, and cached adoo_module storage."
+msgstr "Configured Odoo instances, connection status, and cached adoo_module storage."
+
+msgid "%(count)s instances · %(size)s cached"
+msgstr "%(count)s instances · %(size)s cached"
+
+msgid "No instances configured yet."
+msgstr "No instances configured yet."
+
+msgid "Printers"
+msgstr "Printers"
+
+msgid "When printer access is enabled, all detected printers are allowed unless disabled below."
+msgstr "When printer access is enabled, all detected printers are allowed unless disabled below."
+
+msgid "No printers detected."
+msgstr "No printers detected."
+
+msgid "Serial ports"
+msgstr "Serial ports"
+
+msgid "When device access is enabled, all serial ports are allowed unless disabled below."
+msgstr "When device access is enabled, all serial ports are allowed unless disabled below."
+
+msgid "No serial ports detected."
+msgstr "No serial ports detected."
+
+msgid "USB devices"
+msgstr "USB devices"
+
+msgid "When device access is enabled, all USB devices are allowed unless disabled below."
+msgstr "When device access is enabled, all USB devices are allowed unless disabled below."
+
+msgid "No USB devices detected."
+msgstr "No USB devices detected."
+
+msgid "Device permissions"
+msgstr "Device permissions"
+
+msgid "Connected"
+msgstr "Connected"
+
+msgid "Yes"
+msgstr "Yes"
+
+msgid "No"
+msgstr "No"
+
+msgid "adoo_module cache"
+msgstr "adoo_module cache"
+
+msgid "Files"
+msgstr "Files"
+
+msgid "Storage used"
+msgstr "Storage used"
+
+msgid "Cached modules"
+msgstr "Cached modules"
+
+msgid "+%(count)s more"
+msgstr "+%(count)s more"
+
+msgid "websocket devices"
+msgstr "websocket devices"
+
 msgid "Granted on %(date)s"
 msgstr "Granted on %(date)s"
 
@@ -845,6 +917,9 @@ msgstr "Enable hardware and file permissions for this app?"
 
 msgid "Includes printer, device, camera, and file access. You can change each permission later in Settings → Permissions."
 msgstr "Includes printer, device, camera, and file access. You can change each permission later in Settings → Permissions."
+
+msgid "Includes printer, device, camera, file, and websocket access. You can change each permission later in Settings → Permissions."
+msgstr "Includes printer, device, camera, file, and websocket access. You can change each permission later in Settings → Permissions."
 
 msgid "All permissions enabled on first run"
 msgstr "All permissions enabled on first run"

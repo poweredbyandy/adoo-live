@@ -5,6 +5,11 @@ const {
   validateSerialClosePayload,
 } = require('../../shared/validators');
 const { PERMISSION_TYPES, ensurePermission, getDialogParent } = require('../permission-service');
+const {
+  isDeviceAllowed,
+  buildSerialDeviceKey,
+  filterAllowedDevices,
+} = require('../device-permission-service');
 const { t } = require('../../i18n');
 
 let serialportModule = null;
@@ -31,13 +36,17 @@ function registerSerialHandlers(ipcMain, windowRegistry, logVerbose) {
     const { SerialPort } = await loadSerialPort();
     const ports = await SerialPort.list();
     logVerbose('serial:list', ports.length);
-    return ports.map((port) => ({
+    const mapped = ports.map((port) => ({
       path: port.path,
       manufacturer: port.manufacturer || '',
       serialNumber: port.serialNumber || '',
       vendorId: port.vendorId || '',
       productId: port.productId || '',
     }));
+    return filterAllowedDevices(windowRegistry.config, 'serial', mapped.map((port) => ({
+      ...port,
+      id: port.path,
+    }))).map(({ id, ...port }) => port);
   });
 
   ipcMain.handle(IPC.SERIAL_OPEN, async (_event, payload) => {
@@ -49,6 +58,9 @@ function registerSerialHandlers(ipcMain, windowRegistry, logVerbose) {
 
     const { SerialPort } = await loadSerialPort();
     const { path: portPath, opts } = result.value;
+    if (!isDeviceAllowed(windowRegistry.config, 'serial', buildSerialDeviceKey(portPath))) {
+      throw new Error(t('This serial port is disabled in Settings → Permissions.'));
+    }
     if (openPorts.has(portPath)) {
       return { id: portPath, alreadyOpen: true };
     }
@@ -124,4 +136,18 @@ function closeAllSerialPorts() {
   openPorts.clear();
 }
 
-module.exports = { registerSerialHandlers, closeAllSerialPorts, loadSerialPort };
+function closeSerialPort(portPath) {
+  const port = openPorts.get(portPath);
+  if (!port) {
+    return false;
+  }
+  try {
+    port.close();
+  } catch {
+    void 0;
+  }
+  openPorts.delete(portPath);
+  return true;
+}
+
+module.exports = { registerSerialHandlers, closeAllSerialPorts, closeSerialPort, loadSerialPort };

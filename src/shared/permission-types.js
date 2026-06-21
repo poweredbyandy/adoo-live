@@ -3,6 +3,7 @@ const PERMISSION_TYPES = {
   DEVICES: 'devices',
   CAMERA: 'camera',
   FILES: 'files',
+  WEBSOCKET: 'websocket',
 };
 
 const PERMISSION_TYPE_LIST = Object.values(PERMISSION_TYPES);
@@ -12,6 +13,7 @@ const DEFAULT_PERMISSIONS = {
   devices: false,
   camera: false,
   files: false,
+  websocket: false,
 };
 
 module.exports = {

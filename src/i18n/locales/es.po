@@ -726,6 +726,78 @@ msgstr "Acceso a cámara"
 msgid "File access"
 msgstr "Acceso a archivos"
 
+msgid "WebSocket device access"
+msgstr "Acceso WebSocket a dispositivos"
+
+msgid "Instances"
+msgstr "Instancias"
+
+msgid "Configured Odoo instances, connection status, and cached adoo_module storage."
+msgstr "Instancias Odoo configuradas, estado de conexión y almacenamiento en caché de adoo_module."
+
+msgid "%(count)s instances · %(size)s cached"
+msgstr "%(count)s instancias · %(size)s en caché"
+
+msgid "No instances configured yet."
+msgstr "Aún no hay instancias configuradas."
+
+msgid "Printers"
+msgstr "Impresoras"
+
+msgid "When printer access is enabled, all detected printers are allowed unless disabled below."
+msgstr "Con el acceso a impresoras activo, todas las impresoras detectadas están permitidas salvo las que desactives abajo."
+
+msgid "No printers detected."
+msgstr "No se detectaron impresoras."
+
+msgid "Serial ports"
+msgstr "Puertos serie"
+
+msgid "When device access is enabled, all serial ports are allowed unless disabled below."
+msgstr "Con el acceso a dispositivos activo, todos los puertos serie detectados están permitidos salvo los que desactives abajo."
+
+msgid "No serial ports detected."
+msgstr "No se detectaron puertos serie."
+
+msgid "USB devices"
+msgstr "Dispositivos USB"
+
+msgid "When device access is enabled, all USB devices are allowed unless disabled below."
+msgstr "Con el acceso a dispositivos activo, todos los dispositivos USB detectados están permitidos salvo los que desactives abajo."
+
+msgid "No USB devices detected."
+msgstr "No se detectaron dispositivos USB."
+
+msgid "Device permissions"
+msgstr "Permisos de dispositivos"
+
+msgid "Connected"
+msgstr "Conectada"
+
+msgid "Yes"
+msgstr "Sí"
+
+msgid "No"
+msgstr "No"
+
+msgid "adoo_module cache"
+msgstr "Caché adoo_module"
+
+msgid "Files"
+msgstr "Archivos"
+
+msgid "Storage used"
+msgstr "Espacio usado"
+
+msgid "Cached modules"
+msgstr "Módulos en caché"
+
+msgid "+%(count)s more"
+msgstr "+%(count)s más"
+
+msgid "websocket devices"
+msgstr "dispositivos por websocket"
+
 msgid "Granted on %(date)s"
 msgstr "Concedido el %(date)s"
 
@@ -839,6 +911,9 @@ msgstr "¿Activar permisos de hardware y archivos para esta aplicación?"
 
 msgid "Includes printer, device, camera, and file access. You can change each permission later in Settings → Permissions."
 msgstr "Incluye acceso a impresoras, dispositivos, cámara y archivos. Puedes cambiar cada permiso después en Ajustes → Permisos."
+
+msgid "Includes printer, device, camera, file, and websocket access. You can change each permission later in Settings → Permissions."
+msgstr "Incluye acceso a impresoras, dispositivos, cámara, archivos y websocket. Puedes cambiar cada permiso después en Ajustes → Permisos."
 
 msgid "All permissions enabled on first run"
 msgstr "Todos los permisos activados en la primera ejecución"

@@ -235,6 +235,7 @@ const MENU_ACTION_CLICKABLES = [
 const SETTINGS_NAV_CLICKABLES = [
   { panel: 'personalization', label: 'Personalization' },
   { panel: 'downloads', label: 'Downloads' },
+  { panel: 'instances', label: 'Instances' },
   { panel: 'permissions', label: 'Permissions' },
   { panel: 'logs', label: 'Logs' },
   { panel: 'about', label: 'About' },

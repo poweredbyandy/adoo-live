@@ -313,10 +313,68 @@ async function regenerateAdooModuleAssets(windowRegistry) {
   };
 }
 
+function computeDirectorySize(dirPath) {
+  if (!dirPath || !fs.existsSync(dirPath)) {
+    return { bytes: 0, fileCount: 0 };
+  }
+  let bytes = 0;
+  let fileCount = 0;
+  for (const entry of fs.readdirSync(dirPath, { withFileTypes: true })) {
+    const fullPath = path.join(dirPath, entry.name);
+    if (entry.isDirectory()) {
+      const nested = computeDirectorySize(fullPath);
+      bytes += nested.bytes;
+      fileCount += nested.fileCount;
+    } else if (entry.isFile()) {
+      bytes += fs.statSync(fullPath).size;
+      fileCount += 1;
+    }
+  }
+  return { bytes, fileCount };
+}
+
+function getAdooModuleCacheStats(origin) {
+  const root = getAdooModuleRoot(origin);
+  if (!root || !fs.existsSync(root)) {
+    return {
+      cached: false,
+      version: null,
+      fileCount: 0,
+      bytes: 0,
+      modules: [],
+      path: root || '',
+    };
+  }
+  const manifest = readLocalManifest(origin);
+  const size = computeDirectorySize(root);
+  const modules = (manifest?.files || []).map((file) => file.path);
+  return {
+    cached: Boolean(manifest),
+    version: manifest?.version || null,
+    fileCount: size.fileCount,
+    bytes: size.bytes,
+    modules,
+    path: root,
+  };
+}
+
+function listCachedAdooModuleOrigins() {
+  const root = getAdooModulesRoot();
+  if (!fs.existsSync(root)) {
+    return [];
+  }
+  return fs.readdirSync(root, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => entry.name);
+}
+
 module.exports = {
   clearAdooModuleCacheForOrigin,
   clearAllAdooModuleCaches,
+  computeDirectorySize,
+  getAdooModuleCacheStats,
   getAdooModuleRoot,
+  listCachedAdooModuleOrigins,
   loadModuleRuntime,
   regenerateAdooModuleAssets,
   syncAdooModuleFromWebContents,

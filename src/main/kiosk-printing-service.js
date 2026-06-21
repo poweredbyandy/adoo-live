@@ -7,7 +7,7 @@ const { OdooBusClient } = require('./odoo-bus-client');
 const { appLogger } = require('./logger');
 const { t } = require('../i18n');
 const { notifyPrintJob } = require('./print-notification-service');
-const { PERMISSION_TYPES, ensurePermission, getDialogParent } = require('./permission-service');
+const { PERMISSION_TYPES, ensurePermission, getDialogParent, isPermissionGranted } = require('./permission-service');
 
 async function postPrintJobResult(webContents, jobId, body) {
   if (!webContents || webContents.isDestroyed()) {
@@ -25,6 +25,11 @@ class KioskPrintingService {
 
   start(origin) {
     if (!origin || this.busClient) {
+      return;
+    }
+    const { windowRegistry } = require('./window-registry');
+    const config = windowRegistry.config || require('./config').loadConfig();
+    if (!isPermissionGranted(config, PERMISSION_TYPES.WEBSOCKET)) {
       return;
     }
     this.busClient = new OdooBusClient({
@@ -234,6 +239,12 @@ function stopRemotePrinting(webContents) {
   getPrintingService(webContents)?.stop();
 }
 
+function stopAllRemotePrinting() {
+  for (const service of printingByWebContents.values()) {
+    service.stop();
+  }
+}
+
 module.exports = {
   KioskPrintingService,
   getPrintingService,
@@ -241,4 +252,5 @@ module.exports = {
   printLocalFromBridge,
   startRemotePrinting,
   stopRemotePrinting,
+  stopAllRemotePrinting,
 };

@@ -156,6 +156,7 @@
           <nav class="settings-modal-nav ui-side-nav" aria-label="Settings sections">
             <button type="button" class="settings-nav-item ui-side-nav__item active" data-settings-panel="personalization" data-i18n>Personalization</button>
             <button type="button" class="settings-nav-item ui-side-nav__item" data-settings-panel="downloads" data-i18n>Downloads</button>
+            <button type="button" class="settings-nav-item ui-side-nav__item" data-settings-panel="instances" data-i18n>Instances</button>
             <button type="button" class="settings-nav-item ui-side-nav__item" data-settings-panel="permissions" data-i18n>Permissions</button>
             <button type="button" class="settings-nav-item ui-side-nav__item" data-settings-panel="logs" data-i18n>Logs</button>
             <button type="button" class="settings-nav-item ui-side-nav__item" data-settings-panel="about" data-i18n>About</button>
@@ -188,6 +189,14 @@
               </div>
             </div>
 
+            <div id="settings-panel-instances" class="settings-panel hidden" data-settings-panel="instances">
+              <h3 class="settings-panel-title" data-i18n>Instances</h3>
+              <p class="settings-panel-hint" data-i18n>Configured Odoo instances, connection status, and cached adoo_module storage.</p>
+              <div id="settings-instances-storage-summary" class="settings-instances-summary"></div>
+              <div id="settings-instances-storage-list" class="settings-instances-list"></div>
+              <div id="settings-instances-storage-empty" class="settings-instances-empty hidden" data-i18n>No instances configured yet.</div>
+            </div>
+
             <div id="settings-panel-permissions" class="settings-panel hidden" data-settings-panel="permissions">
               <h3 class="settings-panel-title" data-i18n>Permissions</h3>
               <p class="settings-panel-hint" data-i18n>Control which hardware and file access this app can use.</p>
@@ -207,6 +216,13 @@
                   </span>
                 </label>
                 <label class="settings-permission-item">
+                  <input type="checkbox" class="settings-permission-toggle" data-permission="websocket" />
+                  <span class="settings-permission-text">
+                    <span class="settings-permission-label" data-i18n>WebSocket device access</span>
+                    <span class="settings-permission-meta" data-permission-meta="websocket"></span>
+                  </span>
+                </label>
+                <label class="settings-permission-item">
                   <input type="checkbox" class="settings-permission-toggle" data-permission="camera" />
                   <span class="settings-permission-text">
                     <span class="settings-permission-label" data-i18n>Camera access</span>
@@ -220,6 +236,26 @@
                     <span class="settings-permission-meta" data-permission-meta="files"></span>
                   </span>
                 </label>
+              </div>
+              <div id="settings-permission-device-sections" class="settings-permission-device-sections">
+                <div id="settings-permission-printers-section" class="settings-permission-device-section hidden">
+                  <h4 class="settings-subsection-title" data-i18n>Printers</h4>
+                  <p class="settings-panel-hint" data-i18n>When printer access is enabled, all detected printers are allowed unless disabled below.</p>
+                  <div id="settings-permission-printers-list" class="settings-permission-device-list"></div>
+                  <div id="settings-permission-printers-empty" class="settings-permission-device-empty hidden" data-i18n>No printers detected.</div>
+                </div>
+                <div id="settings-permission-serial-section" class="settings-permission-device-section hidden">
+                  <h4 class="settings-subsection-title" data-i18n>Serial ports</h4>
+                  <p class="settings-panel-hint" data-i18n>When device access is enabled, all serial ports are allowed unless disabled below.</p>
+                  <div id="settings-permission-serial-list" class="settings-permission-device-list"></div>
+                  <div id="settings-permission-serial-empty" class="settings-permission-device-empty hidden" data-i18n>No serial ports detected.</div>
+                </div>
+                <div id="settings-permission-usb-section" class="settings-permission-device-section hidden">
+                  <h4 class="settings-subsection-title" data-i18n>USB devices</h4>
+                  <p class="settings-panel-hint" data-i18n>When device access is enabled, all USB devices are allowed unless disabled below.</p>
+                  <div id="settings-permission-usb-list" class="settings-permission-device-list"></div>
+                  <div id="settings-permission-usb-empty" class="settings-permission-device-empty hidden" data-i18n>No USB devices detected.</div>
+                </div>
               </div>
             </div>
 

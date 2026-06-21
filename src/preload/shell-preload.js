@@ -55,6 +55,13 @@ contextBridge.exposeInMainWorld('shellAPI', {
   removeDownload: (id, deleteFile) => ipcRenderer.invoke(IPC.DOWNLOAD_REMOVE, { id, deleteFile }),
   getPermissions: () => ipcRenderer.invoke(IPC.PERMISSION_GET),
   setPermission: (type, enabled) => ipcRenderer.invoke(IPC.PERMISSION_SET, { type, enabled }),
+  listPermissionDevices: () => ipcRenderer.invoke(IPC.PERMISSION_DEVICES_LIST),
+  setDevicePermission: (category, deviceKey, enabled) => ipcRenderer.invoke(IPC.PERMISSION_DEVICE_SET, {
+    category,
+    deviceKey,
+    enabled,
+  }),
+  getInstancesStorage: () => ipcRenderer.invoke(IPC.INSTANCES_STORAGE_GET),
   showTabContextMenu: (payload) => ipcRenderer.send(IPC.SHELL_TAB_CONTEXT_MENU, payload),
   onStateUpdate: (callback) => {
     const listener = (_event, state) => callback(state);

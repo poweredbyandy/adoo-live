@@ -7,6 +7,7 @@ const {
   PERMISSION_TYPE_LIST,
   DEFAULT_PERMISSIONS,
 } = require('../shared/permission-types');
+const { normalizeDeviceDenylist } = require('../shared/permission-device-denylist');
 
 function normalizePermissions(config) {
   const stored = config?.permissions || {};
@@ -15,6 +16,7 @@ function normalizePermissions(config) {
     devices: Boolean(stored.devices),
     camera: Boolean(stored.camera),
     files: Boolean(stored.files),
+    websocket: Boolean(stored.websocket),
   };
 }
 
@@ -25,6 +27,7 @@ function normalizeGrantedAt(config) {
     devices: stored.devices || null,
     camera: stored.camera || null,
     files: stored.files || null,
+    websocket: stored.websocket || null,
   };
 }
 
@@ -38,6 +41,8 @@ function getPermissionLabel(type) {
       return t('camera');
     case PERMISSION_TYPES.FILES:
       return t('files');
+    case PERMISSION_TYPES.WEBSOCKET:
+      return t('websocket devices');
     default:
       return type;
   }
@@ -51,11 +56,14 @@ function getPermissionsSnapshot(config) {
     devices: permissions.devices,
     camera: permissions.camera,
     files: permissions.files,
+    websocket: permissions.websocket,
+    deviceDenylist: normalizeDeviceDenylist(config),
     grantedAt: {
       printers: permissions.printers ? grantedAt.printers : null,
       devices: permissions.devices ? grantedAt.devices : null,
       camera: permissions.camera ? grantedAt.camera : null,
       files: permissions.files ? grantedAt.files : null,
+      websocket: permissions.websocket ? grantedAt.websocket : null,
     },
   };
 }
@@ -196,12 +204,14 @@ function grantAllPermissions(windowRegistry, source) {
     devices: true,
     camera: true,
     files: true,
+    websocket: true,
   };
   const permissionsGrantedAt = {
     printers: now,
     devices: now,
     camera: now,
     files: now,
+    websocket: now,
   };
   saveUserConfig({ permissions, permissionsGrantedAt });
   windowRegistry.reloadConfig();
@@ -237,7 +247,7 @@ async function runFirstRunPermissionsPrompt(windowRegistry) {
     title: t('App permissions'),
     message: t('Enable hardware and file permissions for this app?'),
     detail: t(
-      'Includes printer, device, camera, and file access. You can change each permission later in Settings → Permissions.',
+      'Includes printer, device, camera, file, and websocket access. You can change each permission later in Settings → Permissions.',
     ),
   });
 

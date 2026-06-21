@@ -285,6 +285,11 @@ function registerIpcHandlers(ipcMain, windowRegistry, modeManager) {
 
   ipcMain.handle(IPC.INSTANCES_GET, wrapHandler(() => getInstancesSnapshot(windowRegistry.config)));
 
+  ipcMain.handle(IPC.INSTANCES_STORAGE_GET, wrapHandler(() => {
+    const { getInstancesStorageSnapshot } = require('../instances-storage-service');
+    return getInstancesStorageSnapshot(windowRegistry);
+  }));
+
   ipcMain.handle(IPC.INSTANCES_ADD, wrapHandler((_event, payload) => {
     addInstance(windowRegistry.config, payload?.label, payload?.url);
     windowRegistry.reloadConfig();

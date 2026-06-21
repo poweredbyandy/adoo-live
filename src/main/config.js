@@ -19,8 +19,14 @@ const DEFAULTS = {
     devices: false,
     camera: false,
     files: false,
+    websocket: false,
   },
   permissionsGrantedAt: {},
+  permissionDeviceDenylist: {
+    printers: [],
+    serial: [],
+    usb: [],
+  },
 };
 
 function getUserConfigPath() {

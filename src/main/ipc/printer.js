@@ -1,6 +1,10 @@
 const { IPC } = require('../../shared/ipc-channels');
 const { validatePrintPayload, validatePrintRawPayload } = require('../../shared/validators');
 const { PERMISSION_TYPES, ensurePermission, getDialogParent } = require('../permission-service');
+const {
+  isDeviceAllowed,
+  buildPrinterDeviceKey,
+} = require('../device-permission-service');
 const { t } = require('../../i18n');
 
 function buildPrintOptions(payload) {
@@ -22,6 +26,25 @@ function normalizeRawData(data) {
   return Buffer.from(String(data));
 }
 
+async function assertPrinterAllowed(windowRegistry, getActiveWebContents, deviceName) {
+  if (!deviceName) {
+    return;
+  }
+  const webContents = getActiveWebContents();
+  if (!webContents) {
+    return;
+  }
+  const printers = await webContents.getPrintersAsync();
+  const match = printers.find((printer) => printer.name === deviceName);
+  if (!match) {
+    return;
+  }
+  const key = buildPrinterDeviceKey(match);
+  if (!isDeviceAllowed(windowRegistry.config, 'printers', key)) {
+    throw new Error(t('This printer is disabled in Settings → Permissions.'));
+  }
+}
+
 function registerPrinterHandlers(ipcMain, windowRegistry, getActiveWebContents, logVerbose) {
   const ensurePrinters = async (actionLabel) => {
     await ensurePermission(windowRegistry, PERMISSION_TYPES.PRINTERS, {
@@ -39,7 +62,11 @@ function registerPrinterHandlers(ipcMain, windowRegistry, getActiveWebContents, 
     }
     const printers = await webContents.getPrintersAsync();
     logVerbose('printer:list', printers.length);
-    return printers;
+    return printers.filter((printer) => isDeviceAllowed(
+      windowRegistry.config,
+      'printers',
+      buildPrinterDeviceKey(printer),
+    ));
   });
 
   ipcMain.handle(IPC.PRINTER_PRINT, async (_event, payload) => {
@@ -54,6 +81,7 @@ function registerPrinterHandlers(ipcMain, windowRegistry, getActiveWebContents, 
       throw new Error('No active page to print');
     }
 
+    await assertPrinterAllowed(windowRegistry, getActiveWebContents, result.value.deviceName);
     const options = buildPrintOptions(result.value);
     logVerbose('printer:print', options.deviceName || 'default');
 
@@ -80,6 +108,7 @@ function registerPrinterHandlers(ipcMain, windowRegistry, getActiveWebContents, 
       throw new Error('No active page to print');
     }
 
+    await assertPrinterAllowed(windowRegistry, getActiveWebContents, result.value.deviceName);
     const rawBuffer = normalizeRawData(result.value.data);
     logVerbose('printer:printRaw', result.value.deviceName || 'default', rawBuffer.length);
 

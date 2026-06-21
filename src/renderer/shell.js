@@ -186,6 +186,18 @@ const elements = {
   settingsPanels: Array.from(document.querySelectorAll('.settings-panel')),
   permissionToggles: Array.from(document.querySelectorAll('.settings-permission-toggle')),
   permissionMeta: Array.from(document.querySelectorAll('[data-permission-meta]')),
+  permissionPrintersSection: document.getElementById('settings-permission-printers-section'),
+  permissionSerialSection: document.getElementById('settings-permission-serial-section'),
+  permissionUsbSection: document.getElementById('settings-permission-usb-section'),
+  permissionPrintersList: document.getElementById('settings-permission-printers-list'),
+  permissionSerialList: document.getElementById('settings-permission-serial-list'),
+  permissionUsbList: document.getElementById('settings-permission-usb-list'),
+  permissionPrintersEmpty: document.getElementById('settings-permission-printers-empty'),
+  permissionSerialEmpty: document.getElementById('settings-permission-serial-empty'),
+  permissionUsbEmpty: document.getElementById('settings-permission-usb-empty'),
+  instancesStorageSummary: document.getElementById('settings-instances-storage-summary'),
+  instancesStorageList: document.getElementById('settings-instances-storage-list'),
+  instancesStorageEmpty: document.getElementById('settings-instances-storage-empty'),
   homeInstances: document.getElementById('home-instances'),
   homeEmpty: document.getElementById('home-empty'),
   homeInstanceForm: document.getElementById('home-instance-form'),
@@ -970,6 +982,230 @@ function renderSettingsLogsPreview(logs) {
     : t('No log entries yet.');
 }
 
+let permissionDevicesCache = null;
+
+function formatStorageBytes(bytes) {
+  const value = Number(bytes) || 0;
+  if (value < 1024) {
+    return `${value} B`;
+  }
+  if (value < 1024 * 1024) {
+    return `${(value / 1024).toFixed(1)} KB`;
+  }
+  if (value < 1024 * 1024 * 1024) {
+    return `${(value / (1024 * 1024)).toFixed(1)} MB`;
+  }
+  return `${(value / (1024 * 1024 * 1024)).toFixed(2)} GB`;
+}
+
+function createPermissionDeviceRow(device, category) {
+  const row = document.createElement('label');
+  row.className = 'settings-permission-device-item';
+
+  const input = document.createElement('input');
+  input.type = 'checkbox';
+  input.className = 'settings-permission-device-toggle';
+  input.checked = Boolean(device.allowed);
+  input.dataset.category = category;
+  input.dataset.deviceKey = device.id;
+  input.disabled = !device.permissionEnabled;
+
+  const text = document.createElement('span');
+  text.className = 'settings-permission-device-text';
+
+  const label = document.createElement('span');
+  label.className = 'settings-permission-device-label';
+  label.textContent = device.label || device.id;
+
+  const detail = document.createElement('span');
+  detail.className = 'settings-permission-device-detail';
+  const detailParts = [];
+  if (device.isDefault) {
+    detailParts.push(t('Default'));
+  }
+  if (device.detail) {
+    detailParts.push(device.detail);
+  }
+  detail.textContent = detailParts.join(' · ');
+
+  text.appendChild(label);
+  if (detail.textContent) {
+    text.appendChild(detail);
+  }
+  row.appendChild(input);
+  row.appendChild(text);
+  return row;
+}
+
+function renderPermissionDeviceList(listElement, emptyElement, devices, category) {
+  if (!listElement) {
+    return;
+  }
+  const items = devices || [];
+  listElement.innerHTML = '';
+  if (emptyElement) {
+    emptyElement.classList.toggle('hidden', items.length > 0);
+  }
+  items.forEach((device) => {
+    listElement.appendChild(createPermissionDeviceRow(device, category));
+  });
+}
+
+function renderSettingsPermissionDevices(data, permissions) {
+  const snapshot = permissions || currentState?.permissions || {};
+  const printersEnabled = Boolean(snapshot.printers);
+  const devicesEnabled = Boolean(snapshot.devices);
+
+  if (elements.permissionPrintersSection) {
+    elements.permissionPrintersSection.classList.toggle('hidden', !printersEnabled);
+  }
+  if (elements.permissionSerialSection) {
+    elements.permissionSerialSection.classList.toggle('hidden', !devicesEnabled);
+  }
+  if (elements.permissionUsbSection) {
+    elements.permissionUsbSection.classList.toggle('hidden', !devicesEnabled);
+  }
+  if (!data) {
+    return;
+  }
+  renderPermissionDeviceList(
+    elements.permissionPrintersList,
+    elements.permissionPrintersEmpty,
+    data.printers,
+    'printers',
+  );
+  renderPermissionDeviceList(
+    elements.permissionSerialList,
+    elements.permissionSerialEmpty,
+    data.serial,
+    'serial',
+  );
+  renderPermissionDeviceList(
+    elements.permissionUsbList,
+    elements.permissionUsbEmpty,
+    data.usb,
+    'usb',
+  );
+}
+
+async function loadSettingsPermissionDevices() {
+  try {
+    const data = await getApi().listPermissionDevices();
+    permissionDevicesCache = data;
+    renderSettingsPermissionDevices(data, currentState?.permissions);
+  } catch {
+    void 0;
+  }
+}
+
+function renderSettingsInstancesStorage(data) {
+  const items = data?.items || [];
+  if (elements.instancesStorageEmpty) {
+    elements.instancesStorageEmpty.classList.toggle('hidden', items.length > 0);
+  }
+  if (elements.instancesStorageSummary) {
+    elements.instancesStorageSummary.textContent = items.length
+      ? t('%(count)s instances · %(size)s cached', {
+        count: items.length,
+        size: formatStorageBytes(data?.totalBytes || 0),
+      })
+      : '';
+  }
+  if (!elements.instancesStorageList) {
+    return;
+  }
+  elements.instancesStorageList.innerHTML = '';
+  items.forEach((instance) => {
+    const card = document.createElement('article');
+    card.className = 'settings-instance-card';
+
+    const header = document.createElement('div');
+    header.className = 'settings-instance-card-header';
+
+    const title = document.createElement('div');
+    title.className = 'settings-instance-card-title';
+    title.textContent = instance.label || instance.host || t('Instance');
+
+    const badges = document.createElement('div');
+    badges.className = 'settings-instance-card-badges';
+
+    if (instance.isDefault) {
+      const badge = document.createElement('span');
+      badge.className = 'settings-instance-badge is-default';
+      badge.textContent = t('Default');
+      badges.appendChild(badge);
+    }
+    if (instance.connected) {
+      const badge = document.createElement('span');
+      badge.className = 'settings-instance-badge is-connected';
+      badge.textContent = t('Connected');
+      badges.appendChild(badge);
+    }
+
+    header.appendChild(title);
+    header.appendChild(badges);
+
+    const url = document.createElement('div');
+    url.className = 'settings-instance-card-url';
+    url.textContent = instance.baseUrl || instance.origin || '';
+
+    const stats = document.createElement('dl');
+    stats.className = 'settings-instance-card-stats';
+
+    const adoo = instance.adooModule || {};
+    const statRows = [
+      [t('adoo_module cache'), adoo.cached ? t('Yes') : t('No')],
+      [t('Version'), adoo.version || '—'],
+      [t('Files'), String(adoo.fileCount || 0)],
+      [t('Storage used'), formatStorageBytes(adoo.bytes || 0)],
+    ];
+    statRows.forEach(([label, value]) => {
+      const term = document.createElement('dt');
+      term.textContent = label;
+      const definition = document.createElement('dd');
+      definition.textContent = value;
+      stats.appendChild(term);
+      stats.appendChild(definition);
+    });
+
+    card.appendChild(header);
+    card.appendChild(url);
+
+    if (adoo.cached && adoo.modules?.length) {
+      const modulesTitle = document.createElement('div');
+      modulesTitle.className = 'settings-instance-modules-title';
+      modulesTitle.textContent = t('Cached modules');
+      const modulesList = document.createElement('ul');
+      modulesList.className = 'settings-instance-modules-list';
+      adoo.modules.slice(0, 12).forEach((modulePath) => {
+        const item = document.createElement('li');
+        item.textContent = modulePath;
+        modulesList.appendChild(item);
+      });
+      if (adoo.modules.length > 12) {
+        const item = document.createElement('li');
+        item.className = 'settings-instance-modules-more';
+        item.textContent = t('+%(count)s more', { count: adoo.modules.length - 12 });
+        modulesList.appendChild(item);
+      }
+      card.appendChild(modulesTitle);
+      card.appendChild(modulesList);
+    }
+
+    card.appendChild(stats);
+    elements.instancesStorageList.appendChild(card);
+  });
+}
+
+async function loadSettingsInstancesStorage() {
+  try {
+    const data = await getApi().getInstancesStorage();
+    renderSettingsInstancesStorage(data);
+  } catch {
+    void 0;
+  }
+}
+
 function renderSettingsPermissions(permissions) {
   if (!permissions) {
     return;
@@ -989,6 +1225,9 @@ function renderSettingsPermissions(permissions) {
       meta.textContent = t('Disabled');
     }
   });
+  if (permissionDevicesCache) {
+    renderSettingsPermissionDevices(permissionDevicesCache, permissions);
+  }
 }
 
 function switchSettingsPanel(panelId) {
@@ -1003,6 +1242,12 @@ function switchSettingsPanel(panelId) {
   });
   if (panelId === 'logs' && currentState?.panelData?.logs) {
     renderSettingsLogsPreview(currentState.panelData.logs);
+  }
+  if (panelId === 'permissions') {
+    void loadSettingsPermissionDevices();
+  }
+  if (panelId === 'instances') {
+    void loadSettingsInstancesStorage();
   }
 }
 
@@ -1418,10 +1663,38 @@ function bindSettingsPanel() {
           describe: () => `${type}: ${enabled ? t('Enabled') : t('Disabled')}`,
         });
         renderSettingsPermissions(snapshot);
+        if (type === 'printers' || type === 'devices') {
+          void loadSettingsPermissionDevices();
+        }
       } catch {
         input.checked = !enabled;
       }
     });
+  });
+
+  document.addEventListener('change', async (event) => {
+    const target = event.target;
+    if (!(target instanceof HTMLInputElement) || !target.classList.contains('settings-permission-device-toggle')) {
+      return;
+    }
+    const category = target.dataset.category;
+    const deviceKey = target.dataset.deviceKey;
+    const enabled = target.checked;
+    try {
+      const result = await runAction(
+        (api) => api.setDevicePermission(category, deviceKey, enabled),
+        {
+          label: t('Device permissions'),
+          describe: () => `${category}: ${enabled ? t('Enabled') : t('Disabled')}`,
+        },
+      );
+      if (result?.devices) {
+        permissionDevicesCache = result.devices;
+        renderSettingsPermissionDevices(result.devices, currentState?.permissions);
+      }
+    } catch {
+      target.checked = !enabled;
+    }
   });
 
   if (elements.btnCheckUpdates) {

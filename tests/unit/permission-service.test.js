@@ -14,6 +14,7 @@ describe('permission-service', () => {
       devices: false,
       camera: false,
       files: false,
+      websocket: false,
     });
     expect(snapshot.printers).toBe(false);
     expect(snapshot.grantedAt.printers).toBeNull();

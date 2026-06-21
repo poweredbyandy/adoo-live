@@ -1693,6 +1693,189 @@ html.menu-overlay-host.platform-linux .menu-drawer {
   line-height: 1.4;
 }
 
+.settings-permission-device-sections {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-space-5);
+  margin-top: var(--ui-space-5);
+}
+
+.settings-permission-device-section.hidden {
+  display: none;
+}
+
+.settings-permission-device-list {
+  border: 1px solid var(--ui-border);
+  border-radius: var(--ui-radius-md);
+  overflow: hidden;
+  background: var(--ui-bg-elevated);
+}
+
+.settings-permission-device-item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ui-space-3);
+  padding: var(--ui-space-3) var(--ui-space-4);
+  border-bottom: 1px solid var(--ui-border);
+  cursor: pointer;
+}
+
+.settings-permission-device-item:last-child {
+  border-bottom: none;
+}
+
+.settings-permission-device-toggle {
+  margin-top: 2px;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+.settings-permission-device-toggle:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.settings-permission-device-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.settings-permission-device-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  word-break: break-word;
+}
+
+.settings-permission-device-detail {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.settings-permission-device-empty {
+  margin-top: var(--ui-space-2);
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.settings-instances-summary {
+  margin-bottom: var(--ui-space-4);
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.settings-instances-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-space-3);
+}
+
+.settings-instances-empty {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.settings-instance-card {
+  border: 1px solid var(--ui-border);
+  border-radius: var(--ui-radius-md);
+  padding: var(--ui-space-4);
+  background: var(--ui-bg-elevated);
+}
+
+.settings-instance-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--ui-space-3);
+  margin-bottom: var(--ui-space-2);
+}
+
+.settings-instance-card-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.settings-instance-card-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.settings-instance-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 500;
+  border: 1px solid var(--ui-border);
+  color: var(--muted);
+}
+
+.settings-instance-badge.is-default {
+  color: var(--accent);
+  border-color: rgba(88, 101, 242, 0.35);
+}
+
+.settings-instance-badge.is-connected {
+  color: #3ba55d;
+  border-color: rgba(59, 165, 93, 0.35);
+}
+
+.settings-instance-card-url {
+  font-size: 12px;
+  color: var(--muted);
+  word-break: break-all;
+  margin-bottom: var(--ui-space-3);
+}
+
+.settings-instance-card-stats {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 12px;
+  margin: 0;
+  font-size: 12px;
+}
+
+.settings-instance-card-stats dt {
+  color: var(--muted);
+}
+
+.settings-instance-card-stats dd {
+  margin: 0;
+  color: var(--text);
+}
+
+.settings-instance-modules-title {
+  margin: var(--ui-space-3) 0 var(--ui-space-2);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.settings-instance-modules-list {
+  margin: 0 0 var(--ui-space-3);
+  padding-left: 18px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.settings-instance-modules-list li {
+  word-break: break-all;
+}
+
+.settings-instance-modules-more {
+  font-style: italic;
+}
+
 .settings-modal .menu-item {
   width: 100%;
 }
