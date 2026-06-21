@@ -148,7 +148,7 @@ Los `.blockmap` son opcionales; el script falla si falta el instalador o el `lat
 
 ## macOS: «La app está dañada» (Gatekeeper)
 
-Si macOS muestra **«adoo IoT está dañado y no puede abrirse»**, la app **no está corrupta**: Gatekeeper bloquea binarios descargados que **no están firmados y notarizados** con Apple. Los releases actuales se construyen sin certificado en CI (`CSC_IDENTITY_AUTO_DISCOVERY` desactivado para Windows/Linux; en macOS solo firma si existen los secrets).
+Si macOS muestra **«adoo IoT está dañado y no puede abrirse»**, la app **no está corrupta**: Gatekeeper bloquea binarios descargados que **no están firmados y notarizados** con Apple. Sin secrets de firma, CI genera un build **sin firmar** (válido; hay que usar el workaround de abajo).
 
 ### Abrir la app ahora (workaround)
 
@@ -167,7 +167,7 @@ Configura estos **GitHub repository secrets** y vuelve a publicar un tag:
 
 | Secret | Contenido |
 |--------|-----------|
-| `MACOS_CERTIFICATE` | Certificado **Developer ID Application** exportado como `.p12` en **base64** |
+| `MACOS_CERTIFICATE` | Certificado **Developer ID Application** exportado como `.p12`, codificado en **base64** (CI lo decodifica a un fichero temporal; `CSC_LINK` debe ser ruta, no el base64 en bruto) |
 | `MACOS_CERTIFICATE_PASSWORD` | Contraseña del `.p12` |
 | `APPLE_ID` | Apple ID del equipo de desarrollo |
 | `APPLE_APP_SPECIFIC_PASSWORD` | Contraseña de app ([appleid.apple.com](https://appleid.apple.com)) |
@@ -179,7 +179,7 @@ Exportar certificado a base64:
 base64 -i developer-id-application.p12 | pbcopy
 ```
 
-El workflow **Release** firmará, aplicará **hardened runtime** (`build/entitlements.mac.plist`) y **notarizará** el `.dmg`/`.zip` de macOS cuando esos secrets existan. Sin ellos, el build sigue siendo válido pero macOS pedirá el workaround anterior.
+El workflow **Release** decodifica el `.p12`, firma, activa **hardened runtime** y **notariza** el `.dmg`/`.zip` de macOS solo cuando esos secrets existen. Sin ellos, el build macOS se empaqueta **sin firmar** y macOS pedirá el workaround anterior.
 
 ### Build local firmado en tu Mac
 
@@ -187,7 +187,7 @@ Con el certificado **Developer ID Application** en el llavero:
 
 ```bash
 export CSC_IDENTITY_AUTO_DISCOVERY=true
-npm run dist:mac
+npm run dist:mac -- --config.mac.hardenedRuntime=true
 ```
 
 electron-builder detectará el certificado y notará si también defines `APPLE_ID`, `APPLE_APP_SPECIFIC_PASSWORD` y `APPLE_TEAM_ID`.
