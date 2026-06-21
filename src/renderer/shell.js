@@ -990,6 +990,10 @@ function switchSettingsPanel(panelId) {
   if (panelId === 'logs' && currentState?.panelData?.logs) {
     renderSettingsLogsPreview(currentState.panelData.logs);
   }
+  if (panelId === 'about' && !settingsUpdateState.autoCheckDone && !settingsUpdateState.checking && !settingsUpdateState.downloading) {
+    settingsUpdateState.autoCheckDone = true;
+    void checkSettingsUpdates();
+  }
 }
 
 function createSettingsInfoRow(label, value) {

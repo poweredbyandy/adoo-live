@@ -12,4 +12,11 @@ describe('version-utils', () => {
     expect(compareVersions('1.0.0', '1.2.0')).toBeLessThan(0);
     expect(compareVersions('2.0.0', '10.0.0')).toBeLessThan(0);
   });
+
+  it('compara sufijos pre-release', () => {
+    expect(compareVersions('1.0.0-beta.6', '1.0.0-beta.7')).toBeLessThan(0);
+    expect(compareVersions('1.0.0-beta.7', '1.0.0-beta.6')).toBeGreaterThan(0);
+    expect(compareVersions('1.0.0-beta.7', '1.0.0')).toBeLessThan(0);
+    expect(compareVersions('1.0.0', '1.0.0-beta.7')).toBeGreaterThan(0);
+  });
 });

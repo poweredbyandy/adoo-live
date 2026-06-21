@@ -90,6 +90,16 @@ function buildUpdateCheckError(currentVersion, error) {
   };
 }
 
+function shouldAllowPrerelease(version) {
+  return String(version || '').includes('-');
+}
+
+function configureAutoUpdater(updater, currentVersion) {
+  updater.autoDownload = false;
+  updater.autoInstallOnAppQuit = true;
+  updater.allowPrerelease = shouldAllowPrerelease(currentVersion);
+}
+
 async function checkForUpdates() {
   const currentVersion = app.getVersion();
   try {
@@ -100,8 +110,7 @@ async function checkForUpdates() {
     }
 
     const updater = getAutoUpdater();
-    updater.autoDownload = false;
-    updater.autoInstallOnAppQuit = true;
+    configureAutoUpdater(updater, currentVersion);
 
     const pending = await updater.checkForUpdates();
     const info = pending?.updateInfo;
@@ -174,8 +183,7 @@ function initUpdateService() {
     return;
   }
   const updater = getAutoUpdater();
-  updater.autoDownload = false;
-  updater.autoInstallOnAppQuit = true;
+  configureAutoUpdater(updater, app.getVersion());
 
   updater.on('checking-for-update', () => {
     broadcastUpdateEvent({ phase: 'checking' });
