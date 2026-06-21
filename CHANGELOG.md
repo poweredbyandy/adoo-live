@@ -16,6 +16,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+## [1.0.0-beta.18]
+
+### Other
+
+- Refactor printer management to enhance system printer listing
+
+### Other
+
+- Refactor printer management to enhance system printer listing
+
+### Added
+
+### Changed
+
+### Fixed
+
 ## [1.0.0-beta.17]
 
 ### Other
