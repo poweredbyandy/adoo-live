@@ -130,6 +130,22 @@ npm run changelog:sync -- 1.0.0-beta.2
 
 Útil para revisar antes de crear el tag.
 
+Validar artefactos de release en local (misma lógica que GitHub Actions):
+
+```bash
+npm run dist:mac && npm run dist:validate:mac
+npm run dist:linux && npm run dist:validate:linux
+npm run dist:win && npm run dist:validate:win
+```
+
+Solo valida la recolección si ya tienes `dist/` generado:
+
+```bash
+npm run dist:validate:mac
+```
+
+Los `.blockmap` son opcionales; el script falla si falta el instalador o el `latest*.yml` de la plataforma.
+
 ## Generar release en GitHub
 
 Script `scripts/github-release.sh` (alias `scripts/release-local.sh`). Solo requiere **git** y **npm**. [GitHub CLI](https://cli.github.com/) (`gh`) es opcional para vigilar el workflow hasta que termine (`brew install gh && gh auth login`).

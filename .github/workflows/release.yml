@@ -105,55 +105,7 @@ jobs:
         run: npm run ${{ matrix.npm_script }}
 
       - name: Collect release artifacts
-        shell: bash
-        run: |
-          set -euo pipefail
-          mkdir -p release-artifacts
-
-          copy_glob() {
-            shopt -s nullglob
-            local matches=("$@")
-            shopt -u nullglob
-            if [ ${#matches[@]} -gt 0 ]; then
-              cp "${matches[@]}" release-artifacts/
-            fi
-          }
-
-          case "${{ matrix.platform }}" in
-            mac)
-              copy_glob dist/*.dmg
-              copy_glob dist/*.zip
-              copy_glob dist/latest-mac.yml
-              ;;
-            linux)
-              copy_glob dist/*.AppImage
-              copy_glob dist/*.deb
-              copy_glob dist/latest-linux.yml
-              ;;
-            win)
-              copy_glob dist/*.exe
-              copy_glob dist/latest.yml
-              ;;
-          esac
-          copy_glob dist/*.blockmap
-          case "${{ matrix.platform }}" in
-            mac)
-              test -f release-artifacts/latest-mac.yml
-              ;;
-            linux)
-              test -f release-artifacts/latest-linux.yml
-              ;;
-            win)
-              test -f release-artifacts/latest.yml
-              ;;
-          esac
-          if [ -z "$(ls -A release-artifacts)" ]; then
-            echo "No release artifacts found in dist/" >&2
-            ls -la dist/ || true
-            exit 1
-          fi
-          echo "Release artifacts:"
-          ls -la release-artifacts/
+        run: bash scripts/collect-release-artifacts.sh ${{ matrix.platform }}
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v5
