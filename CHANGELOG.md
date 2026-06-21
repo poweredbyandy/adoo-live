@@ -16,6 +16,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+## [1.0.0-beta.15]
+
+### Other
+
+- Implement update service enhancements and UI improvements
+
+### Other
+
+- Implement update service enhancements and UI improvements
+
+### Added
+
+### Changed
+
+### Fixed
+
 ## [1.0.0-beta.14]
 
 ### Changed
