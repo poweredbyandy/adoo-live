@@ -16,6 +16,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+## [1.0.0-beta.12]
+
+### Other
+
+- Enhance release process with validation scripts and workflow updates
+
+### Other
+
+- Enhance release process with validation scripts and workflow updates
+
+### Added
+
+### Changed
+
+### Fixed
+
 ## [1.0.0-beta.9]
 
 ### Other
