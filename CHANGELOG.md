@@ -16,6 +16,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+## [1.0.0-beta.16]
+
+### Other
+
+- Implement device access permissions and instances management
+
+### Other
+
+- Implement device access permissions and instances management
+
+### Added
+
+### Changed
+
+### Fixed
+
 ## [1.0.0-beta.15]
 
 ### Other
