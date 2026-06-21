@@ -168,6 +168,14 @@ const elements = {
   btnCheckUpdates: document.getElementById('btn-check-updates'),
   btnDownloadUpdate: document.getElementById('btn-download-update'),
   btnInstallUpdate: document.getElementById('btn-install-update'),
+  updateToast: document.getElementById('update-toast'),
+  updateToastSpinner: document.getElementById('update-toast-spinner'),
+  updateToastTitle: document.getElementById('update-toast-title'),
+  updateToastDetail: document.getElementById('update-toast-detail'),
+  updateToastProgress: document.getElementById('update-toast-progress'),
+  updateToastProgressBar: document.getElementById('update-toast-progress-bar'),
+  updateToastAction: document.getElementById('update-toast-action'),
+  updateToastDismiss: document.getElementById('update-toast-dismiss'),
   btnRegenerateOdooAssets: document.getElementById('btn-regenerate-odoo-assets'),
   btnFactoryReset: document.getElementById('btn-factory-reset'),
   settingsDownloadPath: document.getElementById('settings-download-path'),
@@ -207,17 +215,22 @@ const panels = {
 
 let settingsModalOpen = false;
 let settingsAboutInfo = null;
-let settingsUpdateState = {
+let appUpdateState = {
   checking: false,
   downloading: false,
   updateAvailable: false,
   upToDate: false,
   canAutoUpdate: false,
   readyToInstall: false,
+  toastVisible: false,
+  dismissed: false,
   currentVersion: '',
   latestVersion: '',
   releaseUrl: '',
   message: '',
+  error: false,
+  downloadPercent: 0,
+  noReleasesPublished: false,
 };
 
 const DRAG_MIME = 'application/x-odoo-kiosk-tab';
@@ -991,10 +1004,6 @@ function switchSettingsPanel(panelId) {
   if (panelId === 'logs' && currentState?.panelData?.logs) {
     renderSettingsLogsPreview(currentState.panelData.logs);
   }
-  if (panelId === 'about' && !settingsUpdateState.autoCheckDone && !settingsUpdateState.checking && !settingsUpdateState.downloading) {
-    settingsUpdateState.autoCheckDone = true;
-    void checkSettingsUpdates();
-  }
 }
 
 function createSettingsInfoRow(label, value) {
@@ -1057,11 +1066,16 @@ function renderSettingsAbout(about) {
   });
 }
 
+function renderUpdateUi() {
+  renderSettingsUpdateUi();
+  renderUpdateToast();
+}
+
 function renderSettingsUpdateUi() {
   if (!elements.settingsUpdateStatus) {
     return;
   }
-  const state = settingsUpdateState;
+  const state = appUpdateState;
   elements.settingsUpdateStatus.classList.remove('is-success', 'is-warning', 'is-error');
 
   let message = state.message;
@@ -1069,7 +1083,7 @@ function renderSettingsUpdateUi() {
     if (state.checking) {
       message = t('Checking for updates...');
     } else if (state.downloading) {
-      message = t('Downloading update... %(percent)s%%', {
+      message = t('Downloading update... %(percent)s%', {
         percent: Math.round(state.downloadPercent || 0),
       });
     } else if (state.readyToInstall) {
@@ -1112,6 +1126,200 @@ function renderSettingsUpdateUi() {
   }
 }
 
+function renderUpdateToast() {
+  if (!elements.updateToast || isMenuOverlay) {
+    return;
+  }
+  const state = appUpdateState;
+  const visible = Boolean(
+    state.toastVisible
+    && !state.dismissed
+    && (state.updateAvailable || state.downloading || state.readyToInstall),
+  );
+  elements.updateToast.classList.toggle('hidden', !visible);
+  if (!visible) {
+    return;
+  }
+
+  elements.updateToast.classList.toggle('is-clickable', Boolean(
+    state.updateAvailable && !state.downloading && !state.readyToInstall && state.canAutoUpdate,
+  ));
+  elements.updateToastSpinner.classList.toggle('hidden', !state.downloading);
+  elements.updateToastProgress.classList.toggle('hidden', !state.downloading);
+  elements.updateToastDismiss.classList.toggle('hidden', state.downloading || state.readyToInstall);
+
+  if (state.downloading) {
+    elements.updateToastTitle.textContent = t('Downloading update...');
+    elements.updateToastDetail.textContent = t('%(percent)s% complete', {
+      percent: Math.round(state.downloadPercent || 0),
+    });
+    elements.updateToastProgressBar.style.width = `${Math.max(0, Math.min(100, state.downloadPercent || 0))}%`;
+    elements.updateToastAction.classList.add('hidden');
+    return;
+  }
+
+  if (state.readyToInstall) {
+    elements.updateToastTitle.textContent = t('Update ready');
+    elements.updateToastDetail.textContent = t('Version %(version)s has been downloaded.', {
+      version: state.latestVersion,
+    });
+    elements.updateToastAction.textContent = t('Restart and install');
+    elements.updateToastAction.classList.remove('hidden');
+    return;
+  }
+
+  elements.updateToastTitle.textContent = t('Update available');
+  elements.updateToastDetail.textContent = t('Version %(version)s is available. Click to download.', {
+    version: state.latestVersion,
+  });
+  if (state.canAutoUpdate) {
+    elements.updateToastAction.textContent = t('Download update');
+    elements.updateToastAction.classList.remove('hidden');
+  } else {
+    elements.updateToastAction.textContent = t('Open release page');
+    elements.updateToastAction.classList.remove('hidden');
+  }
+}
+
+function applyUpdateCheckResult(result) {
+  if (result.error) {
+    appUpdateState.checking = false;
+    appUpdateState.error = true;
+    appUpdateState.message = result.message || t('Update failed.');
+    return;
+  }
+  appUpdateState = {
+    ...appUpdateState,
+    checking: false,
+    downloading: false,
+    updateAvailable: Boolean(result.updateAvailable),
+    upToDate: Boolean(result.upToDate),
+    canAutoUpdate: Boolean(result.canAutoUpdate),
+    readyToInstall: Boolean(result.readyToInstall),
+    currentVersion: result.currentVersion || appUpdateState.currentVersion,
+    latestVersion: result.latestVersion || '',
+    releaseUrl: result.releaseUrl || '',
+    noReleasesPublished: Boolean(result.noReleasesPublished),
+    message: '',
+    error: false,
+    downloadPercent: 0,
+    toastVisible: Boolean(result.updateAvailable || result.readyToInstall),
+  };
+}
+
+function handleAppUpdateEvent(payload) {
+  if (!payload) {
+    return;
+  }
+  if (payload.phase === 'checking') {
+    appUpdateState.checking = true;
+    renderUpdateUi();
+    return;
+  }
+  if (payload.phase === 'checked') {
+    applyUpdateCheckResult(payload);
+    renderUpdateUi();
+    return;
+  }
+  if (payload.phase === 'downloading') {
+    appUpdateState.downloading = true;
+    appUpdateState.toastVisible = true;
+    appUpdateState.downloadPercent = payload.percent || 0;
+    renderUpdateUi();
+    return;
+  }
+  if (payload.phase === 'downloaded') {
+    appUpdateState.downloading = false;
+    appUpdateState.readyToInstall = true;
+    appUpdateState.updateAvailable = true;
+    appUpdateState.toastVisible = true;
+    appUpdateState.latestVersion = payload.latestVersion || appUpdateState.latestVersion;
+    renderUpdateUi();
+    return;
+  }
+  if (payload.phase === 'error') {
+    appUpdateState.downloading = false;
+    appUpdateState.checking = false;
+    appUpdateState.error = true;
+    appUpdateState.message = payload.message || t('Update failed.');
+    renderUpdateUi();
+  }
+}
+
+async function downloadAppUpdate() {
+  appUpdateState.downloading = true;
+  appUpdateState.toastVisible = true;
+  appUpdateState.message = '';
+  appUpdateState.error = false;
+  renderUpdateUi();
+  try {
+    const result = await getApi().downloadUpdate();
+    if (result.mode === 'manual') {
+      appUpdateState.downloading = false;
+      appUpdateState.message = t('Release page opened in your browser.');
+      renderUpdateUi();
+      return;
+    }
+    appUpdateState.downloading = false;
+    appUpdateState.readyToInstall = true;
+    appUpdateState.message = t('Update downloaded. Restart to install.');
+    renderUpdateUi();
+  } catch (error) {
+    appUpdateState.downloading = false;
+    appUpdateState.error = true;
+    appUpdateState.message = error.message || String(error);
+    renderUpdateUi();
+  }
+}
+
+async function installAppUpdate() {
+  await getApi().installUpdate();
+}
+
+function bindUpdateToast() {
+  if (!elements.updateToast || isMenuOverlay) {
+    return;
+  }
+
+  elements.updateToast.addEventListener('click', (event) => {
+    if (event.target === elements.updateToastDismiss || event.target === elements.updateToastAction) {
+      return;
+    }
+    if (appUpdateState.readyToInstall) {
+      return;
+    }
+    if (appUpdateState.updateAvailable && !appUpdateState.downloading && appUpdateState.canAutoUpdate) {
+      void downloadAppUpdate();
+    }
+  });
+
+  if (elements.updateToastAction) {
+    elements.updateToastAction.addEventListener('click', (event) => {
+      event.stopPropagation();
+      if (appUpdateState.readyToInstall) {
+        void installAppUpdate();
+        return;
+      }
+      if (appUpdateState.updateAvailable && !appUpdateState.downloading) {
+        if (appUpdateState.canAutoUpdate) {
+          void downloadAppUpdate();
+        } else if (appUpdateState.releaseUrl) {
+          window.open(appUpdateState.releaseUrl, '_blank');
+        }
+      }
+    });
+  }
+
+  if (elements.updateToastDismiss) {
+    elements.updateToastDismiss.addEventListener('click', (event) => {
+      event.stopPropagation();
+      appUpdateState.dismissed = true;
+      appUpdateState.toastVisible = false;
+      renderUpdateToast();
+    });
+  }
+}
+
 async function loadSettingsPanel() {
   if (!elements.settingsModal) {
     return;
@@ -1119,13 +1327,13 @@ async function loadSettingsPanel() {
   try {
     const about = await getApi().getAboutInfo();
     renderSettingsAbout(about);
-    settingsUpdateState.currentVersion = about.version;
-    renderSettingsUpdateUi();
+    appUpdateState.currentVersion = about.version;
+    renderUpdateUi();
     await loadDownloadFolderSettings();
   } catch (error) {
-    settingsUpdateState.message = error.message || String(error);
-    settingsUpdateState.error = true;
-    renderSettingsUpdateUi();
+    appUpdateState.message = error.message || String(error);
+    appUpdateState.error = true;
+    renderUpdateUi();
   }
 }
 
@@ -1136,105 +1344,31 @@ async function prefetchSettingsAbout() {
   try {
     const about = await getApi().getAboutInfo();
     renderSettingsAbout(about);
-    settingsUpdateState.currentVersion = about.version;
-    renderSettingsUpdateUi();
+    appUpdateState.currentVersion = about.version;
+    renderUpdateUi();
   } catch {
     void 0;
   }
 }
 
 async function checkSettingsUpdates() {
-  settingsUpdateState.checking = true;
-  settingsUpdateState.error = false;
-  settingsUpdateState.message = '';
-  renderSettingsUpdateUi();
+  appUpdateState.checking = true;
+  appUpdateState.error = false;
+  appUpdateState.message = '';
+  renderUpdateUi();
   try {
     const result = await getApi().checkForUpdates();
-    if (result.error) {
-      settingsUpdateState.checking = false;
-      settingsUpdateState.error = true;
-      settingsUpdateState.message = result.message || t('Update failed.');
-      renderSettingsUpdateUi();
-      return;
-    }
-    settingsUpdateState = {
-      ...settingsUpdateState,
-      checking: false,
-      downloading: false,
-      updateAvailable: Boolean(result.updateAvailable),
-      upToDate: Boolean(result.upToDate),
-      canAutoUpdate: Boolean(result.canAutoUpdate),
-      readyToInstall: false,
-      currentVersion: result.currentVersion || settingsUpdateState.currentVersion,
-      latestVersion: result.latestVersion || '',
-      releaseUrl: result.releaseUrl || '',
-      noReleasesPublished: Boolean(result.noReleasesPublished),
-      message: '',
-      error: false,
-      downloadPercent: 0,
-    };
+    applyUpdateCheckResult(result);
   } catch (error) {
-    settingsUpdateState.checking = false;
-    settingsUpdateState.error = true;
-    settingsUpdateState.message = error.message || String(error);
+    appUpdateState.checking = false;
+    appUpdateState.error = true;
+    appUpdateState.message = error.message || String(error);
   }
-  renderSettingsUpdateUi();
+  renderUpdateUi();
 }
 
 async function downloadSettingsUpdate() {
-  settingsUpdateState.downloading = true;
-  settingsUpdateState.message = '';
-  settingsUpdateState.error = false;
-  renderSettingsUpdateUi();
-  try {
-    const result = await getApi().downloadUpdate();
-    if (result.mode === 'manual') {
-      settingsUpdateState.downloading = false;
-      settingsUpdateState.message = t('Release page opened in your browser.');
-      renderSettingsUpdateUi();
-      return;
-    }
-    settingsUpdateState.downloading = false;
-    settingsUpdateState.readyToInstall = true;
-    settingsUpdateState.message = t('Update downloaded. Restart to install.');
-    renderSettingsUpdateUi();
-  } catch (error) {
-    settingsUpdateState.downloading = false;
-    settingsUpdateState.error = true;
-    settingsUpdateState.message = error.message || String(error);
-    renderSettingsUpdateUi();
-  }
-}
-
-function handleSettingsUpdateEvent(payload) {
-  if (!payload || !settingsModalOpen) {
-    return;
-  }
-  if (payload.phase === 'checking') {
-    settingsUpdateState.checking = true;
-    renderSettingsUpdateUi();
-    return;
-  }
-  if (payload.phase === 'downloading') {
-    settingsUpdateState.downloading = true;
-    settingsUpdateState.downloadPercent = payload.percent || 0;
-    renderSettingsUpdateUi();
-    return;
-  }
-  if (payload.phase === 'downloaded') {
-    settingsUpdateState.downloading = false;
-    settingsUpdateState.readyToInstall = true;
-    settingsUpdateState.latestVersion = payload.latestVersion || settingsUpdateState.latestVersion;
-    renderSettingsUpdateUi();
-    return;
-  }
-  if (payload.phase === 'error') {
-    settingsUpdateState.downloading = false;
-    settingsUpdateState.checking = false;
-    settingsUpdateState.error = true;
-    settingsUpdateState.message = payload.message || t('Update failed.');
-    renderSettingsUpdateUi();
-  }
+  await downloadAppUpdate();
 }
 
 function bindSettingsPanel() {
@@ -1302,10 +1436,7 @@ function bindSettingsPanel() {
   }
   if (elements.btnInstallUpdate) {
     elements.btnInstallUpdate.addEventListener('click', () => {
-      runAction((api) => api.installUpdate(), {
-        label: t('Restart and install'),
-        describe: () => t('Restarting...'),
-      });
+      void installAppUpdate();
     });
   }
   if (elements.btnRegenerateOdooAssets) {
@@ -2312,9 +2443,10 @@ function boot() {
     setupTabsDropZone();
     bindHomeInstanceForm();
     bindSettingsPanel();
+    bindUpdateToast();
     api.onStateUpdate(applyState);
     api.onFindResult(updateFindStatus);
-    api.onUpdateEvent(handleSettingsUpdateEvent);
+    api.onUpdateEvent(handleAppUpdateEvent);
 
     api.onAction((payload) => {
       if (payload?.action === 'toggleFind' || payload?.action === 'focusFind') {

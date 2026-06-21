@@ -1696,3 +1696,126 @@ html.menu-overlay-host.platform-linux .menu-drawer {
 .settings-modal .menu-item {
   width: 100%;
 }
+
+.update-toast {
+  position: fixed;
+  left: 16px;
+  bottom: 16px;
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: min(360px, calc(100vw - 32px));
+  padding: 14px 16px;
+  border-radius: 8px;
+  background: #18191c;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+  -webkit-app-region: no-drag;
+}
+
+.update-toast.hidden {
+  display: none;
+}
+
+.update-toast-spinner {
+  flex: 0 0 auto;
+  width: 22px;
+  height: 22px;
+  border: 2px solid rgba(255, 255, 255, 0.16);
+  border-top-color: #5865f2;
+  border-radius: 50%;
+  animation: print-notice-spin 0.8s linear infinite;
+}
+
+.update-toast-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.update-toast-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.update-toast-detail {
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.update-toast-detail:empty {
+  display: none;
+}
+
+.update-toast-progress {
+  margin-top: 10px;
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.update-toast-progress.hidden {
+  display: none;
+}
+
+.update-toast-progress-bar {
+  height: 100%;
+  width: 0;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #5865f2, #7289da);
+  transition: width 0.2s ease;
+}
+
+.update-toast-action {
+  flex: 0 0 auto;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 12px;
+  background: #5865f2;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.update-toast-action:hover {
+  background: #4752c4;
+}
+
+.update-toast-action.hidden {
+  display: none;
+}
+
+.update-toast-dismiss {
+  flex: 0 0 auto;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.update-toast-dismiss:hover {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.update-toast-dismiss.hidden {
+  display: none;
+}
+
+.update-toast.is-clickable {
+  cursor: pointer;
+}
+
+.update-toast.is-clickable:hover {
+  border-color: rgba(88, 101, 242, 0.45);
+}

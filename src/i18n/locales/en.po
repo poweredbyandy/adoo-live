@@ -606,8 +606,29 @@ msgstr "Download update"
 msgid "Restart and install"
 msgstr "Restart and install"
 
-msgid "Downloading update... %(percent)s%%"
-msgstr "Downloading update... %(percent)s%%"
+msgid "Downloading update... %(percent)s%"
+msgstr "Downloading update... %(percent)s%"
+
+msgid "Update available"
+msgstr "Update available"
+
+msgid "Version %(version)s is available. Click to download."
+msgstr "Version %(version)s is available. Click to download."
+
+msgid "Update ready"
+msgstr "Update ready"
+
+msgid "Version %(version)s has been downloaded."
+msgstr "Version %(version)s has been downloaded."
+
+msgid "%(percent)s% complete"
+msgstr "%(percent)s% complete"
+
+msgid "Updating adoo IoT..."
+msgstr "Updating adoo IoT..."
+
+msgid "Please wait while the update is installed."
+msgstr "Please wait while the update is installed."
 
 msgid "Update %(version)s is ready to install."
 msgstr "Update %(version)s is ready to install."

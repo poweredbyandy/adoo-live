@@ -600,8 +600,29 @@ msgstr "Descargar actualización"
 msgid "Restart and install"
 msgstr "Reiniciar e instalar"
 
-msgid "Downloading update... %(percent)s%%"
-msgstr "Descargando actualización... %(percent)s%%"
+msgid "Downloading update... %(percent)s%"
+msgstr "Descargando actualización... %(percent)s%"
+
+msgid "Update available"
+msgstr "Actualización disponible"
+
+msgid "Version %(version)s is available. Click to download."
+msgstr "La versión %(version)s está disponible. Haz clic para descargar."
+
+msgid "Update ready"
+msgstr "Actualización lista"
+
+msgid "Version %(version)s has been downloaded."
+msgstr "Se descargó la versión %(version)s."
+
+msgid "%(percent)s% complete"
+msgstr "%(percent)s% completado"
+
+msgid "Updating adoo IoT..."
+msgstr "Actualizando adoo IoT..."
+
+msgid "Please wait while the update is installed."
+msgstr "Espera mientras se instala la actualización."
 
 msgid "Update %(version)s is ready to install."
 msgstr "La actualización %(version)s está lista para instalarse."

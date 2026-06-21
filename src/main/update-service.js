@@ -4,11 +4,13 @@ const { compareVersions } = require('../shared/version-utils');
 const { IPC } = require('../shared/ipc-channels');
 const { appLogger } = require('./logger');
 const { t } = require('../i18n');
+const { showUpdateOverlay } = require('./update-overlay-window');
 
 let autoUpdater = null;
 let progressListener = null;
 let lastCheckResult = null;
 let downloadPromise = null;
+let startupCheckDone = false;
 
 function getAutoUpdater() {
   if (!autoUpdater) {
@@ -102,7 +104,7 @@ function isMissingUpdateMetadataError(error) {
 
 function configureAutoUpdater(updater, currentVersion) {
   updater.autoDownload = false;
-  updater.autoInstallOnAppQuit = true;
+  updater.autoInstallOnAppQuit = false;
   updater.allowPrerelease = shouldAllowPrerelease(currentVersion);
 }
 
@@ -175,10 +177,14 @@ async function downloadUpdate() {
   emitProgress({ phase: 'downloading', percent: 0 });
   broadcastUpdateEvent({ phase: 'downloading', percent: 0 });
   downloadPromise = getAutoUpdater().downloadUpdate()
-    .then(() => ({
-      mode: 'auto',
-      ready: true,
-    }))
+    .then(() => {
+      const latestVersion = lastCheckResult?.latestVersion || getAutoUpdater().updateInfo?.version || '';
+      broadcastUpdateEvent({ phase: 'downloaded', latestVersion });
+      return {
+        mode: 'auto',
+        ready: true,
+      };
+    })
     .finally(() => {
       downloadPromise = null;
     });
@@ -189,7 +195,18 @@ function quitAndInstallUpdate() {
   if (!app.isPackaged) {
     throw new Error(t('Automatic installation is only available in the packaged app.'));
   }
-  getAutoUpdater().quitAndInstall(false, true);
+  showUpdateOverlay();
+  setTimeout(() => {
+    getAutoUpdater().quitAndInstall(true, true);
+  }, 350);
+}
+
+async function checkForUpdatesOnStartup() {
+  if (startupCheckDone || !app.isPackaged) {
+    return lastCheckResult;
+  }
+  startupCheckDone = true;
+  return checkForUpdates();
 }
 
 function initUpdateService() {
@@ -251,6 +268,7 @@ function initUpdateService() {
 
 module.exports = {
   checkForUpdates,
+  checkForUpdatesOnStartup,
   downloadUpdate,
   getLastCheckResult: () => lastCheckResult,
   initUpdateService,

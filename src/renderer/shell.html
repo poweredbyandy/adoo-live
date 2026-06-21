@@ -328,6 +328,19 @@
       </section>
     </main>
 
+    <div id="update-toast" class="update-toast hidden" role="status" aria-live="polite">
+      <div id="update-toast-spinner" class="update-toast-spinner hidden" aria-hidden="true"></div>
+      <div class="update-toast-body">
+        <div id="update-toast-title" class="update-toast-title"></div>
+        <div id="update-toast-detail" class="update-toast-detail"></div>
+        <div id="update-toast-progress" class="update-toast-progress hidden">
+          <div id="update-toast-progress-bar" class="update-toast-progress-bar"></div>
+        </div>
+      </div>
+      <button id="update-toast-action" class="update-toast-action hidden" type="button"></button>
+      <button id="update-toast-dismiss" class="update-toast-dismiss hidden" type="button" aria-label="Dismiss">&times;</button>
+    </div>
+
     <div id="boot-error" class="boot-error hidden"></div>
 
     <script src="ui/icons.js"></script>

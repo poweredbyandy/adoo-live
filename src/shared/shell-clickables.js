@@ -165,6 +165,18 @@ const STATIC_CLICKABLES = [
     hiddenByDefault: true,
   },
   {
+    id: 'update-toast-action',
+    zone: 'update-toast',
+    label: 'Update toast action',
+    hiddenByDefault: true,
+  },
+  {
+    id: 'update-toast-dismiss',
+    zone: 'update-toast',
+    label: 'Dismiss update toast',
+    hiddenByDefault: true,
+  },
+  {
     id: 'btn-regenerate-odoo-assets',
     zone: 'settings',
     label: 'Regenerate Odoo assets',

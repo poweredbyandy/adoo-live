@@ -74,6 +74,12 @@
         "portable"
       ]
     },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": false,
+      "runAfterFinish": true
+    },
     "portable": {
       "artifactName": "adoo-IoT-${version}-portable.${ext}"
     },

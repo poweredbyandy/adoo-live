@@ -11,7 +11,7 @@ const { setupProcessLogging, appLogger } = require('./logger');
 const { webPushServer } = require('./web-push-server');
 const { setNotificationClickHandler } = require('./notification-service');
 const { disconnectAllKioskDevices } = require('./kiosk-device-service');
-const { initUpdateService } = require('./update-service');
+const { initUpdateService, checkForUpdatesOnStartup } = require('./update-service');
 const { applyAppIcon } = require('./app-icon');
 
 let modeManager = null;
@@ -89,6 +89,12 @@ app.whenReady().then(async () => {
     });
   }
   initUpdateService();
+
+  if (firstManager?.window?.webContents) {
+    firstManager.window.webContents.once('did-finish-load', () => {
+      void checkForUpdatesOnStartup();
+    });
+  }
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
