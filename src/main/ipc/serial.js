@@ -9,18 +9,11 @@ const {
   isDeviceAllowed,
   buildSerialDeviceKey,
   filterAllowedDevices,
-} = require('../device-permission-service');
+} = require('../device-permission-core');
+const { loadSerialPort } = require('../serial-loader');
 const { t } = require('../../i18n');
 
-let serialportModule = null;
 const openPorts = new Map();
-
-async function loadSerialPort() {
-  if (!serialportModule) {
-    serialportModule = require('serialport');
-  }
-  return serialportModule;
-}
 
 function registerSerialHandlers(ipcMain, windowRegistry, logVerbose) {
   const ensureDevices = async (actionLabel) => {
@@ -150,4 +143,9 @@ function closeSerialPort(portPath) {
   return true;
 }
 
-module.exports = { registerSerialHandlers, closeAllSerialPorts, closeSerialPort, loadSerialPort };
+module.exports = {
+  registerSerialHandlers,
+  closeAllSerialPorts,
+  closeSerialPort,
+  loadSerialPort,
+};

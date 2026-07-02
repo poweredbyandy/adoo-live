@@ -1,12 +1,11 @@
 const { IPC } = require('../../shared/ipc-channels');
 const { validatePrintPayload, validatePrintRawPayload } = require('../../shared/validators');
 const { PERMISSION_TYPES, ensurePermission, getDialogParent } = require('../permission-service');
-const {
-  isDeviceAllowed,
-  buildPrinterDeviceKey,
-} = require('../device-permission-service');
+const { filterAllowedPrinters } = require('../device-permission-core');
+const { getDefaultDevices, setDefaultDevices } = require('../default-device-service');
+const { loadConfig } = require('../config');
 const { t } = require('../../i18n');
-const { listSystemPrinters } = require('../device-printers');
+const { listSystemPrinters, mapPrinter } = require('../device-printers');
 
 function buildPrintOptions(payload) {
   return {
@@ -40,10 +39,22 @@ async function assertPrinterAllowed(windowRegistry, getActiveWebContents, device
   if (!match) {
     return;
   }
-  const key = buildPrinterDeviceKey(match);
-  if (!isDeviceAllowed(windowRegistry.config, 'printers', key)) {
+  if (!filterAllowedPrinters(loadConfig(), [match]).length) {
     throw new Error(t('This printer is disabled in Settings → Permissions.'));
   }
+}
+
+async function resolvePrintDeviceName(windowRegistry, explicitName) {
+  if (explicitName) {
+    return explicitName;
+  }
+  const defaults = getDefaultDevices(windowRegistry.config || loadConfig());
+  if (!defaults.printerUid) {
+    return undefined;
+  }
+  const printers = filterAllowedPrinters(loadConfig(), await listSystemPrinters(windowRegistry));
+  const match = printers.find((printer) => mapPrinter(printer).printer_uid === defaults.printerUid);
+  return match ? mapPrinter(match).name : undefined;
 }
 
 function registerPrinterHandlers(ipcMain, windowRegistry, getActiveWebContents, logVerbose) {
@@ -59,11 +70,20 @@ function registerPrinterHandlers(ipcMain, windowRegistry, getActiveWebContents, 
     await ensurePrinters(t('List printers'));
     const printers = await listSystemPrinters(windowRegistry);
     logVerbose('printer:list', printers.length);
-    return printers.filter((printer) => isDeviceAllowed(
-      windowRegistry.config,
-      'printers',
-      buildPrinterDeviceKey(printer),
-    ));
+    return filterAllowedPrinters(loadConfig(), printers);
+  });
+
+  ipcMain.handle(IPC.PRINTER_GET_DEFAULTS, async () => {
+    windowRegistry.reloadConfig();
+    return getDefaultDevices(windowRegistry.config);
+  });
+
+  ipcMain.handle(IPC.PRINTER_SET_DEFAULTS, async (_event, payload) => {
+    windowRegistry.reloadConfig();
+    const next = setDefaultDevices(payload || {});
+    windowRegistry.reloadConfig();
+    windowRegistry.broadcastState();
+    return next;
   });
 
   ipcMain.handle(IPC.PRINTER_PRINT, async (_event, payload) => {
@@ -78,8 +98,9 @@ function registerPrinterHandlers(ipcMain, windowRegistry, getActiveWebContents, 
       throw new Error('No active page to print');
     }
 
-    await assertPrinterAllowed(windowRegistry, getActiveWebContents, result.value.deviceName);
-    const options = buildPrintOptions(result.value);
+    const deviceName = await resolvePrintDeviceName(windowRegistry, result.value.deviceName);
+    await assertPrinterAllowed(windowRegistry, getActiveWebContents, deviceName);
+    const options = buildPrintOptions({ ...result.value, deviceName });
     logVerbose('printer:print', options.deviceName || 'default');
 
     return new Promise((resolve, reject) => {
@@ -105,15 +126,16 @@ function registerPrinterHandlers(ipcMain, windowRegistry, getActiveWebContents, 
       throw new Error('No active page to print');
     }
 
-    await assertPrinterAllowed(windowRegistry, getActiveWebContents, result.value.deviceName);
+    const deviceName = await resolvePrintDeviceName(windowRegistry, result.value.deviceName);
+    await assertPrinterAllowed(windowRegistry, getActiveWebContents, deviceName);
     const rawBuffer = normalizeRawData(result.value.data);
-    logVerbose('printer:printRaw', result.value.deviceName || 'default', rawBuffer.length);
+    logVerbose('printer:printRaw', deviceName || 'default', rawBuffer.length);
 
     return new Promise((resolve, reject) => {
       webContents.print(
         {
           silent: true,
-          deviceName: result.value.deviceName,
+          deviceName,
           printBackground: false,
         },
         (success, failureReason) => {

@@ -7,11 +7,11 @@ function isOdooDebugShortcutInput(input) {
     return false;
   }
   const modifier = input.control || input.meta;
-  if (!modifier || !input.shift || input.alt) {
+  if (!modifier || input.shift || input.alt) {
     return false;
   }
   const key = String(input.key || '').toLowerCase();
-  return key === 'd' || input.code === 'KeyD';
+  return key === '.' || input.code === 'Period';
 }
 
 function matchesKeyToken(input, keyToken) {

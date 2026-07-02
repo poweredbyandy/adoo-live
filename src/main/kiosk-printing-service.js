@@ -8,6 +8,7 @@ const { appLogger } = require('./logger');
 const { t } = require('../i18n');
 const { notifyPrintJob } = require('./print-notification-service');
 const { PERMISSION_TYPES, ensurePermission, getDialogParent, isPermissionGranted } = require('./permission-service');
+const { runPrintJobWithPreview } = require('./print-preview-flow');
 
 async function postPrintJobResult(webContents, jobId, body) {
   if (!webContents || webContents.isDestroyed()) {
@@ -113,6 +114,32 @@ class KioskPrintingService {
     }
 
     const { windowRegistry } = require('./window-registry');
+    const payload = {
+      printer_uid: job.printer_uid,
+      document: job.document,
+      document_name: job.document_name,
+      mime_type: job.mime_type || 'application/pdf',
+      print_format: job.print_format,
+      encoding: job.encoding,
+      command_set: job.command_set,
+      device_path: job.device_path,
+      baud_rate: job.baud_rate,
+      job_name: job.report_name,
+      print_uid: job.print_uid,
+      job_id: job.job_id,
+    };
+
+    await runPrintJobWithPreview({
+      webContents: this.webContents,
+      payload,
+      windowRegistry,
+      printJob: async (enriched) => this.executeRemotePrintJob(job, enriched),
+    });
+  }
+
+  async executeRemotePrintJob(job, payload) {
+    const identity = getDeviceIdentity();
+    const { windowRegistry } = require('./window-registry');
     await ensurePermission(windowRegistry, PERMISSION_TYPES.PRINTERS, {
       browserWindow: getDialogParent(windowRegistry),
       source: 'kiosk-print-remote',
@@ -139,17 +166,17 @@ class KioskPrintingService {
     );
     try {
       await printDocument(this.webContents, {
-        printer_uid: job.printer_uid,
-        document: job.document,
-        document_name: job.document_name,
-        mime_type: job.mime_type || 'application/pdf',
-        print_format: job.print_format,
-        encoding: job.encoding,
-        command_set: job.command_set,
-        device_path: job.device_path,
-        baud_rate: job.baud_rate,
-        job_name: job.report_name,
-        print_uid: job.print_uid,
+        printer_uid: payload.printer_uid,
+        document: payload.document,
+        document_name: payload.document_name,
+        mime_type: payload.mime_type,
+        print_format: payload.print_format,
+        encoding: payload.encoding,
+        command_set: payload.command_set,
+        device_path: payload.device_path,
+        baud_rate: payload.baud_rate,
+        job_name: payload.job_name,
+        print_uid: payload.print_uid,
       });
       await postPrintJobResult(this.webContents, job.job_id, {
         device_uid: identity.device_uid,
@@ -173,6 +200,7 @@ class KioskPrintingService {
         String(job.job_id || ''),
         job.print_uid || '',
       );
+      return { ok: true };
     } catch (error) {
       await postPrintJobResult(this.webContents, job.job_id, {
         device_uid: identity.device_uid,

@@ -8,14 +8,7 @@ function normalizeOdooWebPath(pathname) {
 }
 
 function buildOdooDebugReloadUrl(urlString, level) {
-  const url = new URL(urlString);
-  url.pathname = normalizeOdooWebPath(url.pathname);
-  url.hash = '';
-  url.search = '';
-  if (level) {
-    url.searchParams.set('debug', level);
-  }
-  return url.toString();
+  return applyOdooDebugToUrl(urlString, level);
 }
 
 function applyOdooDebugToUrl(urlString, level) {

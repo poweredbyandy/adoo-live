@@ -10,6 +10,8 @@ const {
 } = require('../device-permission-service');
 const { closeAllSerialPorts, closeSerialPort } = require('./serial');
 const { stopAllRemotePrinting } = require('../kiosk-printing-service');
+const { closeAllUsbDevices } = require('../usb-device-service');
+const { syncKioskDeviceRegistry } = require('../kiosk-device-service');
 
 function registerPermissionHandlers(ipcMain, windowRegistry) {
   ipcMain.handle(IPC.PERMISSION_GET, async () => {
@@ -28,6 +30,9 @@ function registerPermissionHandlers(ipcMain, windowRegistry) {
     if (category === 'serial' && !enabled) {
       closeSerialPort(deviceKey);
     }
+    if (category === 'printers') {
+      await syncKioskDeviceRegistry('printer_permissions_changed');
+    }
     return {
       ...result,
       devices: await listPermissionDevices(windowRegistry),
@@ -43,9 +48,13 @@ function registerPermissionHandlers(ipcMain, windowRegistry) {
     const result = setUserPermission(windowRegistry, type, enabled, 'settings');
     if (result.revoked && result.type === PERMISSION_TYPES.DEVICES) {
       closeAllSerialPorts();
+      closeAllUsbDevices();
     }
     if (result.revoked && result.type === PERMISSION_TYPES.WEBSOCKET) {
       stopAllRemotePrinting();
+    }
+    if (type === PERMISSION_TYPES.PRINTERS) {
+      await syncKioskDeviceRegistry('printer_permissions_changed');
     }
     return result.snapshot;
   });

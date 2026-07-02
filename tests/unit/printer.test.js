@@ -67,6 +67,38 @@ describe('device-printers', () => {
     expect(mapPrinter(printers[0]).name).toBe('POS-80');
   });
 
+  it('combina impresoras de varios webContents cuando el shell devuelve lista vacía', async () => {
+    const shellWebContents = {
+      id: 1,
+      isDestroyed: () => false,
+      getPrintersAsync: async () => [],
+    };
+    const odooWebContents = {
+      id: 2,
+      isDestroyed: () => false,
+      getPrintersAsync: async () => ([{
+        name: 'POS-80',
+        displayName: 'POS-80',
+        description: 'Generic driver',
+        isDefault: true,
+        status: 0,
+      }]),
+    };
+    const manager = {
+      window: { webContents: shellWebContents },
+      tabs: [{ view: { webContents: odooWebContents } }],
+      resolveOdooWebContents: () => odooWebContents,
+    };
+    const windowRegistry = {
+      getFocused: () => manager,
+      getAll: () => [manager],
+    };
+
+    const printers = await listSystemPrinters(windowRegistry);
+    expect(printers).toHaveLength(1);
+    expect(printers[0].name).toBe('POS-80');
+  });
+
   it('lista impresoras aunque no haya pestañas Odoo abiertas', async () => {
     const shellWebContents = {
       id: 10,

@@ -340,6 +340,15 @@ function registerIpcHandlers(ipcMain, windowRegistry, modeManager) {
     return nextLocale;
   }));
 
+  ipcMain.handle(IPC.CONFIG_SET_PRINT_PREVIEW_MODE, wrapHandler((_event, mode) => {
+    const { normalizePrintPreviewMode } = require('../../shared/print-preview-mode');
+    const nextMode = normalizePrintPreviewMode(mode);
+    saveUserConfig({ printPreviewMode: nextMode });
+    windowRegistry.reloadConfig();
+    windowRegistry.broadcastState();
+    return nextMode;
+  }));
+
   ipcMain.on(IPC.SHELL_TAB_CONTEXT_MENU, (event, payload) => {
     const windowManager = resolveWindowManager(windowRegistry, event, primaryManager());
     if (!windowManager?.window || windowManager.window.isDestroyed()) {

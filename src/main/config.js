@@ -27,6 +27,12 @@ const DEFAULTS = {
     serial: [],
     usb: [],
   },
+  defaultDevices: {
+    printerUid: '',
+    usbDeviceKey: '',
+    serialPath: '',
+  },
+  printPreviewMode: 'before',
 };
 
 function getUserConfigPath() {

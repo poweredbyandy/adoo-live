@@ -32,12 +32,27 @@ const NOTIFICATION_SHIM_SOURCE = fs.readFileSync(
   path.join(__dirname, '../preload/odoo-notification-shim.js'),
   'utf8',
 );
+const SECURE_CONTEXT_SHIM_SOURCE = fs.readFileSync(
+  path.join(__dirname, '../preload/odoo-secure-context-shim.js'),
+  'utf8',
+);
+const WEBUSB_SHIM_SOURCE = fs.readFileSync(path.join(__dirname, '../preload/odoo-webusb-shim.js'), 'utf8');
+const WEBSERIAL_SHIM_SOURCE = fs.readFileSync(path.join(__dirname, '../preload/odoo-webserial-shim.js'), 'utf8');
 const { showDownloadNotification } = require('./notification-service');
 
 function injectOdooPageShims(webContents) {
   if (!webContents || webContents.isDestroyed()) {
     return;
   }
+  webContents.executeJavaScript(SECURE_CONTEXT_SHIM_SOURCE).catch((error) => {
+    appLogger.add('error', 'webusb', t('Could not install secure context shim'), error.message);
+  });
+  webContents.executeJavaScript(WEBUSB_SHIM_SOURCE).catch((error) => {
+    appLogger.add('error', 'webusb', t('Could not install WebUSB shim'), error.message);
+  });
+  webContents.executeJavaScript(WEBSERIAL_SHIM_SOURCE).catch((error) => {
+    appLogger.add('error', 'webserial', t('Could not install WebSerial shim'), error.message);
+  });
   webContents.executeJavaScript(NOTIFICATION_SHIM_SOURCE).catch((error) => {
     appLogger.add('error', 'notify', t('Could not install notification shim'), error.message);
   });
@@ -77,8 +92,11 @@ class WindowManager {
     this.menuOverlayView = null;
     this.menuOverlayReady = null;
     this.menuOverlayToken = 0;
+    this.previewOverlayView = null;
+    this.previewOverlayReady = null;
     this.printNotices = new Map();
     this.printNoticeTimers = new Map();
+    this.printPreview = null;
     this.currentFindQuery = '';
     this.findResult = { query: '', matches: 0, activeMatchOrdinal: 0, label: '' };
     WindowManager.configureDownloadsOnce();
@@ -157,6 +175,15 @@ class WindowManager {
         }
         this.menuOverlayView = null;
         this.menuOverlayReady = null;
+      }
+      if (this.previewOverlayView) {
+        try {
+          this.previewOverlayView.webContents.close();
+        } catch {
+          void 0;
+        }
+        this.previewOverlayView = null;
+        this.previewOverlayReady = null;
       }
       if (this.registry) {
         this.registry.unregister(this);
@@ -271,6 +298,7 @@ class WindowManager {
     this.window.on('resize', () => {
       this.updateActiveViewBounds();
       this.updateMenuOverlayBounds();
+      this.updatePreviewOverlayBounds();
     });
     this.window.loadFile(path.join(__dirname, '../renderer/shell.html'));
     return this.window;
@@ -656,6 +684,27 @@ class WindowManager {
     const tab = this.createPanelTab(type);
     this.switchTab(tab.id);
     return tab;
+  }
+
+  openPrintPreview(payload) {
+    this.printPreview = {
+      ...payload,
+      requestedAt: new Date().toISOString(),
+    };
+    this.showPreviewOverlay();
+    this.broadcastState();
+    return this.printPreview;
+  }
+
+  getPrintPreviewPayload() {
+    return this.printPreview ? { ...this.printPreview } : null;
+  }
+
+  closePrintPreview() {
+    this.printPreview = null;
+    this.hidePreviewOverlay();
+    this.broadcastState();
+    return true;
   }
 
   createTab(url = null) {
@@ -1079,6 +1128,88 @@ class WindowManager {
     this.detachContentView(this.menuOverlayView);
   }
 
+  getPreviewOverlayBounds() {
+    const bounds = this.window.getContentBounds();
+    return {
+      x: 0,
+      y: 0,
+      width: bounds.width,
+      height: bounds.height,
+    };
+  }
+
+  ensurePreviewOverlayView() {
+    if (this.previewOverlayView) {
+      return this.previewOverlayReady || Promise.resolve();
+    }
+
+    this.previewOverlayView = new WebContentsView({
+      webPreferences: {
+        preload: path.join(__dirname, '../preload/shell-preload.js'),
+        contextIsolation: true,
+        nodeIntegration: false,
+        sandbox: false,
+      },
+    });
+
+    if (typeof this.previewOverlayView.setBackgroundColor === 'function') {
+      this.previewOverlayView.setBackgroundColor('#00000000');
+    }
+
+    attachWebContentsLogging(this.previewOverlayView.webContents, 'preview-overlay');
+    attachKeymapShortcuts(this.registry, this.previewOverlayView.webContents);
+    attachContextMenu(this.previewOverlayView.webContents, {
+      getWindow: () => this.window,
+    });
+    this.previewOverlayReady = new Promise((resolve) => {
+      this.previewOverlayView.webContents.once('did-finish-load', resolve);
+    });
+    this.previewOverlayView.webContents.loadFile(path.join(__dirname, '../renderer/shell.html'), {
+      search: '?overlay=preview',
+    });
+    return this.previewOverlayReady;
+  }
+
+  updatePreviewOverlayBounds() {
+    if (!this.previewOverlayView || !this.window || this.window.isDestroyed()) {
+      return;
+    }
+    this.previewOverlayView.setBounds(this.getPreviewOverlayBounds());
+  }
+
+  raisePreviewOverlay() {
+    if (!this.previewOverlayView || !this.window || this.window.isDestroyed()) {
+      return;
+    }
+    this.updatePreviewOverlayBounds();
+    try {
+      this.window.contentView.removeChildView(this.previewOverlayView);
+    } catch {
+      void 0;
+    }
+    this.window.contentView.addChildView(this.previewOverlayView);
+  }
+
+  showPreviewOverlay() {
+    if (!this.window || this.window.isDestroyed() || !this.printPreview) {
+      return;
+    }
+    this.ensurePreviewOverlayView().then(() => {
+      if (!this.printPreview) {
+        return;
+      }
+      this.raisePreviewOverlay();
+      this.broadcastState();
+    });
+  }
+
+  hidePreviewOverlay() {
+    if (!this.previewOverlayView || !this.window || this.window.isDestroyed()) {
+      return;
+    }
+    this.detachContentView(this.previewOverlayView);
+  }
+
   getContentBounds() {
     return calculateContentBounds(this.window.getContentBounds(), this.getChromeHeight(), 0);
   }
@@ -1344,6 +1475,7 @@ class WindowManager {
       panelData: {
         logs: appLogger.getEntries(),
         instances: getInstancesSnapshot(this.config),
+        printPreview: this.printPreview,
         ...historyStore.getSnapshot(),
       },
       isOdooTabActive: isOdooTab(activeTab),
@@ -1351,6 +1483,10 @@ class WindowManager {
       i18nCatalog: getCatalog(),
       keymap: getKeymapForDisplay(process.platform, t),
       permissions: getPermissionsSnapshot(this.config),
+      defaultDevices: require('./default-device-service').getDefaultDevices(this.config),
+      printPreviewMode: require('../shared/print-preview-mode').normalizePrintPreviewMode(
+        this.config.printPreviewMode,
+      ),
     };
   }
 
@@ -1362,6 +1498,9 @@ class WindowManager {
     this.window.webContents.send(IPC.SHELL_STATE_UPDATE, state);
     if (this.menuOverlayView && !this.menuOverlayView.webContents.isDestroyed()) {
       this.menuOverlayView.webContents.send(IPC.SHELL_STATE_UPDATE, state);
+    }
+    if (this.previewOverlayView && !this.previewOverlayView.webContents.isDestroyed()) {
+      this.previewOverlayView.webContents.send(IPC.SHELL_STATE_UPDATE, state);
     }
   }
 }

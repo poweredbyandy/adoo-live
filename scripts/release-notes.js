@@ -24,6 +24,15 @@ function extractChangelogSection(version) {
 function buildReleaseBody(version) {
   const section = extractChangelogSection(version);
   let body = `## adoo IoT v${version}\n\n`;
+  body += '### macOS — primera instalación\n\n';
+  body += 'Si macOS indica que la app **está dañada**, no lo está: es el bloqueo de Gatekeeper para apps descargadas sin firma Apple.\n\n';
+  body += '1. Arrastra **adoo IoT** a **Applications**.\n';
+  body += '2. **Clic derecho** → **Abrir** → **Abrir** (solo la primera vez).\n\n';
+  body += 'O en Terminal:\n\n';
+  body += '```bash\n';
+  body += 'xattr -dr com.apple.quarantine "/Applications/adoo IoT.app"\n';
+  body += '```\n\n';
+  body += 'Con doble clic y solo una advertencia suave hace falta **firmar y notarizar** con Apple Developer ID.\n\n';
   if (section) {
     body += section;
   } else {

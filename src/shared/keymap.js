@@ -2,7 +2,7 @@ const KEYMAP = [
   {
     id: 'odoo-debug',
     action: 'toggleOdooDebug',
-    accelerator: 'CommandOrControl+Shift+D',
+    accelerator: 'CommandOrControl+.',
     label: 'Odoo developer mode (double: assets)',
   },
   {

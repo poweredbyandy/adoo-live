@@ -90,6 +90,36 @@ msgstr "Modo Kiosk / Ventana"
 msgid "Language"
 msgstr "Idioma"
 
+msgid "Print preview"
+msgstr "Previsualización de impresión"
+
+msgid "Choose how label and receipt jobs are handled before printing."
+msgstr "Elige cómo se gestionan las etiquetas y tickets antes de imprimir."
+
+msgid "Print preview mode"
+msgstr "Modo de previsualización"
+
+msgid "Print directly"
+msgstr "Imprimir directamente"
+
+msgid "Preview before printing"
+msgstr "Previsualizar antes de imprimir"
+
+msgid "Preview and print"
+msgstr "Previsualizar e imprimir"
+
+msgid "LX-300+II calibration preview"
+msgstr "Prueba de calibración LX-300+II"
+
+msgid "Reference page rendered"
+msgstr "Página de referencia generada"
+
+msgid "Rendering preview..."
+msgstr "Generando previsualización..."
+
+msgid "Could not render preview."
+msgstr "No se pudo generar la previsualización."
+
 msgid "Settings"
 msgstr "Ajustes"
 
@@ -143,6 +173,12 @@ msgstr "Historial"
 
 msgid "Recently visited pages"
 msgstr "Páginas visitadas recientemente"
+
+msgid "Recent pages"
+msgstr "Páginas recientes"
+
+msgid "Last visited Odoo pages"
+msgstr "Últimas páginas Odoo visitadas"
 
 msgid "Clear"
 msgstr "Vaciar"
@@ -386,6 +422,15 @@ msgstr "No se pudo instalar notification shim"
 
 msgid "Could not install push shim"
 msgstr "No se pudo instalar push shim"
+
+msgid "Could not install secure context shim"
+msgstr "No se pudo instalar secure context shim"
+
+msgid "Could not install WebUSB shim"
+msgstr "No se pudo instalar WebUSB shim"
+
+msgid "Could not install WebSerial shim"
+msgstr "No se pudo instalar WebSerial shim"
 
 msgid "Open menu"
 msgstr "Abrir menú"
@@ -776,6 +821,27 @@ msgstr "Con el acceso a dispositivos activo, todos los dispositivos USB detectad
 
 msgid "No USB devices detected."
 msgstr "No se detectaron dispositivos USB."
+
+msgid "Default printer"
+msgstr "Impresora predeterminada"
+
+msgid "Default serial port"
+msgstr "Puerto serie predeterminado"
+
+msgid "Default USB device"
+msgstr "Dispositivo USB predeterminado"
+
+msgid "Default devices"
+msgstr "Dispositivos predeterminados"
+
+msgid "Default devices updated"
+msgstr "Dispositivos predeterminados actualizados"
+
+msgid "None"
+msgstr "Ninguno"
+
+msgid "System default"
+msgstr "Predeterminada del sistema"
 
 msgid "Device permissions"
 msgstr "Permisos de dispositivos"

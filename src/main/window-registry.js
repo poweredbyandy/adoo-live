@@ -53,6 +53,9 @@ class WindowRegistry {
       if (manager.menuOverlayView?.webContents === webContents) {
         return manager;
       }
+      if (manager.previewOverlayView?.webContents === webContents) {
+        return manager;
+      }
       if (manager.window?.webContents === webContents) {
         return manager;
       }

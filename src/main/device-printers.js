@@ -1,9 +1,18 @@
 const crypto = require('crypto');
+const { BrowserWindow } = require('electron');
+
+function normalizePrinterName(printer) {
+  const name = String(printer?.name || '').trim();
+  if (name) {
+    return name;
+  }
+  return String(printer?.displayName || '').trim();
+}
 
 function buildPrinterUid(printer) {
   return crypto
     .createHash('sha256')
-    .update(String(printer.name || ''))
+    .update(normalizePrinterName(printer))
     .digest('hex')
     .slice(0, 32);
 }
@@ -20,8 +29,8 @@ function mapPrinterStatus(status) {
 
 function inferConnectionType(printer) {
   const optionType = printer.options?.type || printer.options?.['printer-type'] || '';
-  if (optionType) {
-    return String(optionType).toLowerCase();
+  if (optionType && typeof optionType === 'string') {
+    return optionType.toLowerCase();
   }
   const label = `${printer.name || ''} ${printer.description || ''}`.toLowerCase();
   if (label.includes('usb')) {
@@ -34,9 +43,10 @@ function inferConnectionType(printer) {
 }
 
 function mapPrinter(printer) {
+  const name = normalizePrinterName(printer);
   return {
     printer_uid: buildPrinterUid(printer),
-    name: printer.name,
+    name,
     driver: printer.description || '',
     is_default: Boolean(printer.isDefault),
     status: mapPrinterStatus(printer.status),
@@ -85,19 +95,54 @@ function collectPrinterWebContents(windowRegistry) {
   return candidates;
 }
 
+let printerListingWindow = null;
+
+async function listPrintersFromHiddenWindow() {
+  if (!printerListingWindow || printerListingWindow.isDestroyed()) {
+    printerListingWindow = new BrowserWindow({
+      show: false,
+      webPreferences: {
+        sandbox: false,
+      },
+    });
+  }
+  return printerListingWindow.webContents.getPrintersAsync();
+}
+
+function mergeSystemPrinters(target, printers) {
+  if (!Array.isArray(printers)) {
+    return target;
+  }
+  for (const printer of printers) {
+    const key = normalizePrinterName(printer);
+    if (!key) {
+      continue;
+    }
+    if (!target.has(key)) {
+      target.set(key, printer);
+    }
+  }
+  return target;
+}
+
 async function listSystemPrinters(windowRegistry) {
+  const merged = new Map();
   const candidates = collectPrinterWebContents(windowRegistry);
   for (const webContents of candidates) {
     try {
-      const printers = await webContents.getPrintersAsync();
-      if (Array.isArray(printers)) {
-        return printers;
-      }
+      mergeSystemPrinters(merged, await webContents.getPrintersAsync());
     } catch {
       void 0;
     }
   }
-  return [];
+  if (!merged.size) {
+    try {
+      mergeSystemPrinters(merged, await listPrintersFromHiddenWindow());
+    } catch {
+      void 0;
+    }
+  }
+  return [...merged.values()];
 }
 
 module.exports = {
@@ -108,4 +153,5 @@ module.exports = {
   listSystemPrinters,
   mapPrinter,
   mapPrinterStatus,
+  normalizePrinterName,
 };

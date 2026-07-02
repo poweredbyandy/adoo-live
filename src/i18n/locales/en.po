@@ -90,6 +90,36 @@ msgstr "Kiosk / Window mode"
 msgid "Language"
 msgstr "Language"
 
+msgid "Print preview"
+msgstr "Print preview"
+
+msgid "Choose how label and receipt jobs are handled before printing."
+msgstr "Choose how label and receipt jobs are handled before printing."
+
+msgid "Print preview mode"
+msgstr "Print preview mode"
+
+msgid "Print directly"
+msgstr "Print directly"
+
+msgid "Preview before printing"
+msgstr "Preview before printing"
+
+msgid "Preview and print"
+msgstr "Preview and print"
+
+msgid "LX-300+II calibration preview"
+msgstr "LX-300+II calibration preview"
+
+msgid "Reference page rendered"
+msgstr "Reference page rendered"
+
+msgid "Rendering preview..."
+msgstr "Rendering preview..."
+
+msgid "Could not render preview."
+msgstr "Could not render preview."
+
 msgid "Settings"
 msgstr "Settings"
 
@@ -143,6 +173,12 @@ msgstr "History"
 
 msgid "Recently visited pages"
 msgstr "Recently visited pages"
+
+msgid "Recent pages"
+msgstr "Recent pages"
+
+msgid "Last visited Odoo pages"
+msgstr "Last visited Odoo pages"
 
 msgid "Clear"
 msgstr "Clear"
@@ -392,6 +428,15 @@ msgstr "Could not install notification shim"
 
 msgid "Could not install push shim"
 msgstr "Could not install push shim"
+
+msgid "Could not install secure context shim"
+msgstr "Could not install secure context shim"
+
+msgid "Could not install WebUSB shim"
+msgstr "Could not install WebUSB shim"
+
+msgid "Could not install WebSerial shim"
+msgstr "Could not install WebSerial shim"
 
 msgid "Open menu"
 msgstr "Open menu"
@@ -782,6 +827,27 @@ msgstr "When device access is enabled, all USB devices are allowed unless disabl
 
 msgid "No USB devices detected."
 msgstr "No USB devices detected."
+
+msgid "Default printer"
+msgstr "Default printer"
+
+msgid "Default serial port"
+msgstr "Default serial port"
+
+msgid "Default USB device"
+msgstr "Default USB device"
+
+msgid "Default devices"
+msgstr "Default devices"
+
+msgid "Default devices updated"
+msgstr "Default devices updated"
+
+msgid "None"
+msgstr "None"
+
+msgid "System default"
+msgstr "System default"
 
 msgid "Device permissions"
 msgstr "Device permissions"

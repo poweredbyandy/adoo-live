@@ -9,7 +9,7 @@ const { appLogger } = require('./logger');
 const { t } = require('../i18n');
 const { loadConfig } = require('./config');
 const { PERMISSION_TYPES, isPermissionGranted } = require('./permission-service');
-const { isDeviceAllowed, buildPrinterDeviceKey } = require('./device-permission-service');
+const { filterAllowedPrinters } = require('./device-permission-core');
 
 const managers = new Map();
 
@@ -105,16 +105,15 @@ class KioskDeviceManager {
     }
   }
 
+  async getFilteredPrinters() {
+    const config = loadConfig();
+    const printers = await getPrintersPayload(this.webContents);
+    return filterAllowedPrinters(config, printers);
+  }
+
   async buildPayload() {
     const identity = getDeviceIdentity();
-    const config = loadConfig();
-    const printers = isPermissionGranted(config, PERMISSION_TYPES.PRINTERS)
-      ? (await getPrintersPayload(this.webContents)).filter((printer) => isDeviceAllowed(
-        config,
-        'printers',
-        buildPrinterDeviceKey(printer),
-      ))
-      : [];
+    const printers = await this.getFilteredPrinters();
     return {
       device_uid: identity.device_uid,
       hostname: identity.hostname,
@@ -173,9 +172,14 @@ class KioskDeviceManager {
   async checkPrintersChanged() {
     const config = loadConfig();
     if (!isPermissionGranted(config, PERMISSION_TYPES.PRINTERS)) {
+      if (this.printersFingerprint) {
+        this.printersFingerprint = '';
+        await this.sendHeartbeat('printers_changed');
+        return true;
+      }
       return false;
     }
-    const printers = await getPrintersPayload(this.webContents);
+    const printers = await this.getFilteredPrinters();
     const nextFingerprint = fingerprintPrinters(printers);
     if (!this.printersFingerprint) {
       this.printersFingerprint = nextFingerprint;
@@ -266,11 +270,45 @@ async function notifyPrintersPossiblyChanged(webContents) {
   return manager.checkPrintersChanged();
 }
 
+function ensureKioskDeviceManagers() {
+  const { windowRegistry } = require('./window-registry');
+  for (const windowManager of windowRegistry.getAll()) {
+    for (const tab of windowManager.tabs || []) {
+      if (!tab.kioskCompatible || !tab.view?.webContents || tab.view.webContents.isDestroyed()) {
+        continue;
+      }
+      attachKioskDeviceManager(tab.view.webContents, true);
+    }
+  }
+}
+
+async function syncKioskDeviceRegistry(reason = 'permissions_changed') {
+  ensureKioskDeviceManagers();
+  const pending = [];
+  for (const manager of managers.values()) {
+    if (manager.webContents.isDestroyed()) {
+      continue;
+    }
+    if (!(await manager.hasActiveOdooSession())) {
+      continue;
+    }
+    manager.sessionActive = true;
+    pending.push(manager.sendHeartbeat(reason));
+  }
+  if (!pending.length) {
+    return 0;
+  }
+  await Promise.all(pending);
+  return pending.length;
+}
+
 module.exports = {
   KioskDeviceManager,
   attachKioskDeviceManager,
   disconnectAllKioskDevices,
+  ensureKioskDeviceManagers,
   getNetworkFingerprint,
   notifyPrintersPossiblyChanged,
+  syncKioskDeviceRegistry,
   stopKioskDeviceSession,
 };

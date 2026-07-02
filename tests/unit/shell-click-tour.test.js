@@ -205,6 +205,36 @@ describe('shell click tour', () => {
   });
 
   describe('menú y paneles', () => {
+    it('muestra previsualización como drawer sobre una pestaña Odoo', async () => {
+      const { api } = await loadShell({
+        activeTabType: TAB_TYPES.ODOO,
+        activeTabId: 'tab-odoo',
+        currentUrl: 'https://odoo.test/web#action=1',
+        tabs: [{ id: 'tab-odoo', type: TAB_TYPES.ODOO, title: 'Odoo', url: 'https://odoo.test/web#action=1' }],
+        panelData: {
+          printPreview: {
+            printer_uid: 'printer-1',
+            document: btoa('^XA^FO20,20^FDTest^FS^XZ'),
+            document_name: 'test.zpl',
+            mime_type: 'application/vnd.pba.kiosk.zpl',
+            print_format: 'zpl',
+            encoding: 'utf-8',
+            job_name: 'Preview Test',
+          },
+        },
+      });
+
+      const drawer = document.getElementById('print-preview-drawer');
+      expect(drawer.classList.contains('hidden')).toBe(false);
+      expect(document.getElementById('panel-home').classList.contains('hidden')).toBe(true);
+
+      await clickElement(document.getElementById('btn-print-preview'));
+      expect(countApiCalls(api, 'printPreviewDocument')).toBe(1);
+
+      await clickElement(document.getElementById('btn-print-preview-close'));
+      expect(countApiCalls(api, 'closePrintPreview')).toBe(1);
+    });
+
     it('recorre acciones del menú', async () => {
       const { api } = await loadShell({ activeTabType: TAB_TYPES.HOME });
 

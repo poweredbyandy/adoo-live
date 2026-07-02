@@ -1,36 +1,36 @@
 const { isOdooDebugShortcutInput } = require('../../src/shared/shortcut-input');
 
 describe('shortcut-input', () => {
-  it('detecta Cmd+Shift+D en keyDown', () => {
+  it('detecta Cmd+. en keyDown', () => {
     expect(isOdooDebugShortcutInput({
       type: 'keyDown',
-      key: 'D',
-      meta: true,
-      shift: true,
-      alt: false,
-      control: false,
-      isAutoRepeat: false,
-    })).toBe(true);
-  });
-
-  it('detecta Cmd+Shift+D en rawKeyDown', () => {
-    expect(isOdooDebugShortcutInput({
-      type: 'rawKeyDown',
-      code: 'KeyD',
-      meta: true,
-      shift: true,
-      alt: false,
-      control: false,
-      isAutoRepeat: false,
-    })).toBe(true);
-  });
-
-  it('ignora pulsaciones sin shift', () => {
-    expect(isOdooDebugShortcutInput({
-      type: 'keyDown',
-      key: 'd',
+      key: '.',
       meta: true,
       shift: false,
+      alt: false,
+      control: false,
+      isAutoRepeat: false,
+    })).toBe(true);
+  });
+
+  it('detecta Cmd+. en rawKeyDown', () => {
+    expect(isOdooDebugShortcutInput({
+      type: 'rawKeyDown',
+      code: 'Period',
+      meta: true,
+      shift: false,
+      alt: false,
+      control: false,
+      isAutoRepeat: false,
+    })).toBe(true);
+  });
+
+  it('ignora pulsaciones con shift', () => {
+    expect(isOdooDebugShortcutInput({
+      type: 'keyDown',
+      key: '.',
+      meta: true,
+      shift: true,
       isAutoRepeat: false,
     })).toBe(false);
   });

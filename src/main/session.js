@@ -15,6 +15,10 @@ const PRELOAD_DIR = path.join(__dirname, '../preload');
 
 const BASE_ALLOWED_PERMISSIONS = new Set(['notifications', 'clipboard-read', 'push']);
 
+function isDeviceBridgePermission(permission) {
+  return permission === 'usb' || permission === 'serial' || permission === 'hid';
+}
+
 function getOdooSession() {
   return session.fromPartition(SESSION_PARTITION);
 }
@@ -24,8 +28,11 @@ function registerOdooPageShims(odooSession) {
     return;
   }
   const scripts = [
+    { id: 'odoo-kiosk-secure-context-shim', file: 'odoo-secure-context-shim.js', type: 'frame' },
     { id: 'odoo-kiosk-notification-shim', file: 'odoo-notification-shim.js', type: 'frame' },
     { id: 'odoo-kiosk-push-shim', file: 'odoo-push-shim.js', type: 'frame' },
+    { id: 'odoo-kiosk-webusb-shim', file: 'odoo-webusb-shim.js', type: 'frame' },
+    { id: 'odoo-kiosk-webserial-shim', file: 'odoo-webserial-shim.js', type: 'frame' },
     { id: 'odoo-kiosk-sw-notification-shim', file: 'odoo-sw-notification-shim.js', type: 'service-worker' },
   ];
   scripts.forEach(({ id, file, type }) => {
@@ -61,12 +68,20 @@ function configureSession(windowRegistry) {
       return;
     }
 
+    if (isDeviceBridgePermission(permission)) {
+      callback(isPermissionGranted(loadConfig(), PERMISSION_TYPES.DEVICES));
+      return;
+    }
+
     callback(BASE_ALLOWED_PERMISSIONS.has(permission));
   });
 
   odooSession.setPermissionCheckHandler((_webContents, permission) => {
     if (isCameraPermission(permission)) {
       return isPermissionGranted(loadConfig(), PERMISSION_TYPES.CAMERA);
+    }
+    if (isDeviceBridgePermission(permission)) {
+      return isPermissionGranted(loadConfig(), PERMISSION_TYPES.DEVICES);
     }
     return BASE_ALLOWED_PERMISSIONS.has(permission);
   });

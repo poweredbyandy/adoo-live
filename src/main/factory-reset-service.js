@@ -4,6 +4,7 @@ const { app } = require('electron');
 const { getOdooSession } = require('./session');
 const { disconnectAllKioskDevices } = require('./kiosk-device-service');
 const { closeAllSerialPorts } = require('./ipc/serial');
+const { closeAllUsbDevices } = require('./usb-device-service');
 const { appLogger } = require('./logger');
 
 async function clearOdooSessionData() {
@@ -24,6 +25,7 @@ async function performFactoryReset() {
 
   await disconnectAllKioskDevices();
   closeAllSerialPorts();
+  closeAllUsbDevices();
   await clearOdooSessionData();
   appLogger.clear();
   await wipeUserDataDirectory(userDataPath);

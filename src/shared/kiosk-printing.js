@@ -137,6 +137,38 @@ function validateLocalPrintPayload(payload) {
   };
 }
 
+function validatePrintPreviewPayload(payload) {
+  if (!payload || typeof payload !== 'object') {
+    return { valid: false, error: 'El payload de previsualización debe ser un objeto.' };
+  }
+  const document = String(payload.document || '').trim();
+  const mimeType = String(payload.mime_type || 'application/pdf').trim();
+  const printFormat = resolvePrintFormat(payload);
+  if (!document) {
+    return { valid: false, error: 'El documento en base64 es obligatorio.' };
+  }
+  if (!printFormat) {
+    return { valid: false, error: `Formato de previsualización no soportado: ${payload.print_format || mimeType}` };
+  }
+  return {
+    valid: true,
+    value: {
+      printer_uid: payload.printer_uid ? String(payload.printer_uid).trim() : '',
+      document,
+      document_name: payload.document_name ? String(payload.document_name) : 'document',
+      mime_type: mimeType,
+      print_format: printFormat,
+      encoding: payload.encoding ? String(payload.encoding) : '',
+      command_set: payload.command_set ? String(payload.command_set) : '',
+      job_name: payload.job_name ? String(payload.job_name) : '',
+      print_uid: payload.print_uid ? String(payload.print_uid) : '',
+      device_path: payload.device_path ? String(payload.device_path).trim() : '',
+      baud_rate: Number(payload.baud_rate) || 9600,
+      ...(payload.job_id ? { job_id: payload.job_id } : {}),
+    },
+  };
+}
+
 function decodeBase64Document(documentBase64) {
   return Buffer.from(String(documentBase64), 'base64');
 }
@@ -191,4 +223,5 @@ module.exports = {
   resolvePrintFormat,
   shouldHandleRemotePrintJob,
   validateLocalPrintPayload,
+  validatePrintPreviewPayload,
 };

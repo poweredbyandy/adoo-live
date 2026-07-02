@@ -8,6 +8,7 @@ const DISABLE_REASONS = {
   NO_FIND_MATCHES: 'no_find_matches',
   ALREADY_DEFAULT_INSTANCE: 'already_default_instance',
   NO_DOWNLOAD_FILE: 'no_download_file',
+  NO_PRINT_PREVIEW: 'no_print_preview',
   HIDDEN: 'hidden',
   ALREADY_ACTIVE_MODE: 'already_active_mode',
   ALREADY_ACTIVE_TAB: 'already_active_tab',
@@ -216,6 +217,21 @@ const STATIC_CLICKABLES = [
     requiresHistoryPanel: true,
     disabledWhen: (state) => !(state.panelData?.pageHistory?.length),
     disabledReason: () => DISABLE_REASONS.NO_HISTORY,
+  },
+  {
+    id: 'btn-print-preview',
+    zone: 'print-preview',
+    label: 'Print preview document',
+    api: 'printPreviewDocument',
+    disabledWhen: (state) => !state.panelData?.printPreview?.document,
+    disabledReason: () => DISABLE_REASONS.NO_PRINT_PREVIEW,
+  },
+  {
+    id: 'btn-print-preview-close',
+    zone: 'print-preview',
+    label: 'Close print preview',
+    api: 'closePrintPreview',
+    hiddenWhen: (state) => !state.panelData?.printPreview,
   },
 ];
 

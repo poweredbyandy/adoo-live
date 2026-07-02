@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob:; frame-src 'self' blob: data:; style-src 'self' 'unsafe-inline'; script-src 'self'" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>adoo IoT</title>
     <link rel="icon" type="image/png" href="../../icon.png" />
@@ -177,6 +177,24 @@
                   <option value="es" data-i18n>Spanish</option>
                 </select>
               </label>
+              <fieldset class="settings-fieldset">
+                <legend class="settings-fieldset-legend" data-i18n>Print preview</legend>
+                <p class="settings-panel-hint" data-i18n>Choose how label and receipt jobs are handled before printing.</p>
+                <div id="print-preview-mode-group" class="settings-radio-group" role="radiogroup" data-i18n-aria-label="Print preview mode">
+                  <label class="settings-radio-item">
+                    <input type="radio" name="print-preview-mode" value="off" />
+                    <span data-i18n>Print directly</span>
+                  </label>
+                  <label class="settings-radio-item">
+                    <input type="radio" name="print-preview-mode" value="before" />
+                    <span data-i18n>Preview before printing</span>
+                  </label>
+                  <label class="settings-radio-item">
+                    <input type="radio" name="print-preview-mode" value="before_and_print" />
+                    <span data-i18n>Preview and print</span>
+                  </label>
+                </div>
+              </fieldset>
             </div>
 
             <div id="settings-panel-downloads" class="settings-panel hidden" data-settings-panel="downloads">
@@ -243,18 +261,30 @@
                   <p class="settings-panel-hint" data-i18n>When printer access is enabled, all detected printers are allowed unless disabled below.</p>
                   <div id="settings-permission-printers-list" class="settings-permission-device-list"></div>
                   <div id="settings-permission-printers-empty" class="settings-permission-device-empty hidden" data-i18n>No printers detected.</div>
+                  <label class="settings-default-device-row">
+                    <span class="settings-default-device-label" data-i18n>Default printer</span>
+                    <select id="settings-default-printer" class="settings-default-device-select"></select>
+                  </label>
                 </div>
                 <div id="settings-permission-serial-section" class="settings-permission-device-section hidden">
                   <h4 class="settings-subsection-title" data-i18n>Serial ports</h4>
                   <p class="settings-panel-hint" data-i18n>When device access is enabled, all serial ports are allowed unless disabled below.</p>
                   <div id="settings-permission-serial-list" class="settings-permission-device-list"></div>
                   <div id="settings-permission-serial-empty" class="settings-permission-device-empty hidden" data-i18n>No serial ports detected.</div>
+                  <label class="settings-default-device-row">
+                    <span class="settings-default-device-label" data-i18n>Default serial port</span>
+                    <select id="settings-default-serial" class="settings-default-device-select"></select>
+                  </label>
                 </div>
                 <div id="settings-permission-usb-section" class="settings-permission-device-section hidden">
                   <h4 class="settings-subsection-title" data-i18n>USB devices</h4>
                   <p class="settings-panel-hint" data-i18n>When device access is enabled, all USB devices are allowed unless disabled below.</p>
                   <div id="settings-permission-usb-list" class="settings-permission-device-list"></div>
                   <div id="settings-permission-usb-empty" class="settings-permission-device-empty hidden" data-i18n>No USB devices detected.</div>
+                  <label class="settings-default-device-row">
+                    <span class="settings-default-device-label" data-i18n>Default USB device</span>
+                    <select id="settings-default-usb" class="settings-default-device-select"></select>
+                  </label>
                 </div>
               </div>
             </div>
@@ -325,6 +355,14 @@
         </form>
         <div id="home-instances" class="panel-list ui-list"></div>
         <div id="home-empty" class="panel-empty ui-empty hidden" data-i18n>No instances configured yet. Add the first one above.</div>
+        <section id="home-recent-section" class="home-recent-section">
+          <div class="home-recent-header">
+            <h2 class="home-recent-title" data-i18n>Recent pages</h2>
+            <p class="home-recent-subtitle" data-i18n>Last visited Odoo pages</p>
+          </div>
+          <div id="home-recent-history" class="panel-list ui-list"></div>
+          <div id="home-recent-empty" class="panel-empty ui-empty hidden" data-i18n>No pages in history yet.</div>
+        </section>
       </section>
 
       <section id="panel-logs" class="panel hidden" data-panel="logs">
@@ -362,7 +400,33 @@
         <div id="downloads-list" class="panel-list ui-list"></div>
         <div id="downloads-empty" class="panel-empty ui-empty hidden" data-i18n>No downloads recorded.</div>
       </section>
+
     </main>
+
+    <div id="print-preview-backdrop" class="print-preview-backdrop hidden" aria-hidden="true"></div>
+    <aside id="print-preview-drawer" class="print-preview-drawer hidden" role="dialog" aria-modal="true" aria-labelledby="print-preview-title" aria-hidden="true">
+      <div class="print-preview-header">
+        <div>
+          <h2 id="print-preview-title" data-i18n>Print preview</h2>
+          <p id="print-preview-subtitle" data-i18n>Document received from Odoo</p>
+        </div>
+        <div id="print-preview-zoom-controls" class="print-preview-zoom hidden" aria-hidden="true">
+          <span class="print-preview-zoom-label" data-i18n>Zoom</span>
+          <div class="print-preview-zoom-stepper">
+            <button id="btn-print-preview-zoom-out" class="print-preview-zoom-btn" type="button" data-i18n-title="Zoom out">−</button>
+            <button id="btn-print-preview-zoom-reset" class="print-preview-zoom-value" type="button" data-i18n-title="Reset zoom">100%</button>
+            <button id="btn-print-preview-zoom-in" class="print-preview-zoom-btn" type="button" data-i18n-title="Zoom in">+</button>
+          </div>
+        </div>
+        <button id="btn-print-preview-close" type="button" class="ui-btn ui-btn--icon ui-btn--ghost icon-btn" data-ui-icon="close" data-i18n-title="Close"></button>
+      </div>
+      <div id="print-preview-meta" class="print-preview-meta"></div>
+      <div id="print-preview-content" class="print-preview-content"></div>
+      <div id="print-preview-empty" class="panel-empty ui-empty hidden" data-i18n>No document to preview yet.</div>
+      <div class="print-preview-actions">
+        <button id="btn-print-preview" type="button" class="ui-btn ui-btn--primary" data-i18n>Print</button>
+      </div>
+    </aside>
 
     <div id="update-toast" class="update-toast hidden" role="status" aria-live="polite">
       <div id="update-toast-spinner" class="update-toast-spinner hidden" aria-hidden="true"></div>

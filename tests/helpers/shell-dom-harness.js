@@ -243,6 +243,16 @@ function createMockShellAPI(initialState) {
       broadcast();
       return record('dismissPrintNotice', [id], state);
     },
+    printPreviewDocument: () => record('printPreviewDocument', [], { ok: true }),
+    renderLabelPreview: (payload) => {
+      const { renderLabelPreview } = require('../../src/shared/label-preview');
+      return renderLabelPreview(payload);
+    },
+    closePrintPreview: () => {
+      state.panelData.printPreview = null;
+      broadcast();
+      return record('closePrintPreview', [], true);
+    },
     getLogs: () => Promise.resolve(state.panelData.logs),
     clearLogs: () => {
       state.panelData.logs = [];

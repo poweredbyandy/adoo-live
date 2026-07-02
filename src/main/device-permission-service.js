@@ -1,17 +1,28 @@
 const { saveUserConfig } = require('./config');
 const {
-  buildPrinterUid,
   inferConnectionType,
   listSystemPrinters,
+  mapPrinter,
   mapPrinterStatus,
 } = require('./device-printers');
-const { loadSerialPort } = require('./ipc/serial');
-const { loadUsb } = require('./ipc/usb');
+const { loadSerialPort } = require('./serial-loader');
+const { loadUsb } = require('./usb-loader');
+const { listSerialBackedUsbDevices, isSerialBackedDeviceKey, parseSerialBackedDeviceKey } = require('./usb-serial-bridge');
 const { PERMISSION_TYPES, isPermissionGranted } = require('./permission-service');
 const { normalizeDeviceDenylist } = require('../shared/permission-device-denylist');
 const { t } = require('../i18n');
-
-const DEVICE_CATEGORIES = ['printers', 'serial', 'usb'];
+const {
+  DEVICE_CATEGORIES,
+  buildPrinterDeviceKey,
+  buildSerialDeviceKey,
+  buildUsbDeviceKey,
+  isDeviceAllowed,
+  isDeviceDenied,
+  filterAllowedDevices,
+  filterAllowedPrinters,
+  resolveDeviceKey,
+  getPermissionTypeForCategory,
+} = require('./device-permission-core');
 
 function compactFields(fields) {
   return Object.fromEntries(
@@ -47,61 +58,6 @@ function readUsbDeviceStrings(device) {
   return { manufacturer, product };
 }
 
-function buildPrinterDeviceKey(printer) {
-  if (typeof printer === 'string') {
-    return printer;
-  }
-  if (printer?.printer_uid) {
-    return String(printer.printer_uid);
-  }
-  return buildPrinterUid(printer || {});
-}
-
-function buildSerialDeviceKey(port) {
-  if (typeof port === 'string') {
-    return port;
-  }
-  return String(port?.path || '').trim();
-}
-
-function buildUsbDeviceKey(device) {
-  if (typeof device === 'string') {
-    return device;
-  }
-  const vendorId = Number(device?.vendorId ?? 0);
-  const productId = Number(device?.productId ?? 0);
-  const busNumber = Number(device?.busNumber ?? 0);
-  const deviceAddress = Number(device?.deviceAddress ?? 0);
-  return `${vendorId}:${productId}:${busNumber}:${deviceAddress}`;
-}
-
-function getPermissionTypeForCategory(category) {
-  if (category === 'printers') {
-    return PERMISSION_TYPES.PRINTERS;
-  }
-  if (category === 'serial' || category === 'usb') {
-    return PERMISSION_TYPES.DEVICES;
-  }
-  return null;
-}
-
-function isDeviceDenied(config, category, deviceKey) {
-  const key = String(deviceKey || '').trim();
-  if (!key || !DEVICE_CATEGORIES.includes(category)) {
-    return false;
-  }
-  const denylist = normalizeDeviceDenylist(config);
-  return denylist[category].includes(key);
-}
-
-function isDeviceAllowed(config, category, deviceKey) {
-  const permissionType = getPermissionTypeForCategory(category);
-  if (!permissionType || !isPermissionGranted(config, permissionType)) {
-    return false;
-  }
-  return !isDeviceDenied(config, category, deviceKey);
-}
-
 function setDeviceAllowed(windowRegistry, category, deviceKey, allowed) {
   if (!DEVICE_CATEGORIES.includes(category)) {
     throw new Error(t('Unknown device category.'));
@@ -112,7 +68,7 @@ function setDeviceAllowed(windowRegistry, category, deviceKey, allowed) {
   }
   const denylist = normalizeDeviceDenylist(windowRegistry.config);
   const entries = new Set(denylist[category]);
-  if (enabledDevice(allowed)) {
+  if (Boolean(allowed)) {
     entries.delete(key);
   } else {
     entries.add(key);
@@ -127,10 +83,6 @@ function setDeviceAllowed(windowRegistry, category, deviceKey, allowed) {
     allowed: isDeviceAllowed(windowRegistry.config, category, key),
     denylist,
   };
-}
-
-function enabledDevice(value) {
-  return Boolean(value);
 }
 
 async function listSerialDevices() {
@@ -158,7 +110,7 @@ async function listSerialDevices() {
 async function listUsbDevices() {
   try {
     const usb = await loadUsb();
-    return usb.getDeviceList().map((device) => {
+    const native = usb.getDeviceList().map((device) => {
       const vendorId = device.deviceDescriptor.idVendor;
       const productId = device.deviceDescriptor.idProduct;
       const { manufacturer, product } = readUsbDeviceStrings(device);
@@ -183,6 +135,17 @@ async function listUsbDevices() {
         }),
       };
     });
+    const serialBacked = (await listSerialBackedUsbDevices()).map((entry) => ({
+      id: entry.deviceKey,
+      label: entry.label || entry.viaSerialPath,
+      fields: compactFields({
+        path: entry.viaSerialPath,
+        vendorId: formatUsbId(entry.vendorId),
+        productId: formatUsbId(entry.productId),
+        via: 'serial',
+      }),
+    }));
+    return [...native, ...serialBacked];
   } catch {
     return [];
   }
@@ -191,36 +154,52 @@ async function listUsbDevices() {
 async function listPrinterDevices(windowRegistry) {
   try {
     const printers = await listSystemPrinters(windowRegistry);
-    return printers.map((printer) => {
-      const connectionType = inferConnectionType(printer);
-      const status = mapPrinterStatus(printer.status);
-      const name = printer.name || '';
-      const displayName = printer.displayName || '';
-      const driver = printer.description || '';
-      const location = printer.options?.location || printer.options?.['printer-location'] || '';
-      return {
-        id: buildPrinterDeviceKey(printer),
-        label: displayName || name || t('Printer'),
-        isDefault: Boolean(printer.isDefault),
-        fields: compactFields({
-          name,
-          displayName: displayName && displayName !== name ? displayName : '',
-          driver,
-          status,
-          connection: connectionType,
-          location,
-        }),
-      };
+    return printers.flatMap((printer) => {
+      try {
+        const mapped = mapPrinter(printer);
+        const connectionType = inferConnectionType(printer);
+        const status = mapPrinterStatus(printer.status);
+        const name = mapped.name || '';
+        const displayName = printer.displayName || '';
+        const driver = printer.description || '';
+        const location = printer.options?.location || printer.options?.['printer-location'] || '';
+        if (!name) {
+          return [];
+        }
+        return [{
+          id: mapped.printer_uid,
+          label: displayName || name || t('Printer'),
+          isDefault: Boolean(printer.isDefault),
+          fields: compactFields({
+            name,
+            displayName: displayName && displayName !== name ? displayName : '',
+            driver,
+            status,
+            connection: connectionType,
+            location,
+          }),
+        }];
+      } catch {
+        return [];
+      }
     });
   } catch {
     return [];
   }
 }
 
+function resolveAllowedFlag(config, category, device) {
+  const id = String(device.id || '').trim();
+  if (category === 'usb' && isSerialBackedDeviceKey(id)) {
+    return isDeviceAllowed(config, 'serial', parseSerialBackedDeviceKey(id));
+  }
+  return isDeviceAllowed(config, category, id);
+}
+
 function attachAllowedFlag(config, category, devices) {
   return devices.map((device) => ({
     ...device,
-    allowed: isDeviceAllowed(config, category, device.id),
+    allowed: resolveAllowedFlag(config, category, device),
     permissionEnabled: Boolean(isPermissionGranted(config, getPermissionTypeForCategory(category))),
   }));
 }
@@ -240,13 +219,6 @@ async function listPermissionDevices(windowRegistry) {
   };
 }
 
-function filterAllowedDevices(config, category, devices) {
-  return devices.filter((device) => {
-    const id = device.id || device.printer_uid || device.path || buildUsbDeviceKey(device);
-    return isDeviceAllowed(config, category, id);
-  });
-}
-
 module.exports = {
   DEVICE_CATEGORIES,
   buildPrinterDeviceKey,
@@ -258,5 +230,7 @@ module.exports = {
   setDeviceAllowed,
   listPermissionDevices,
   filterAllowedDevices,
+  filterAllowedPrinters,
+  resolveDeviceKey,
   getPermissionTypeForCategory,
 };

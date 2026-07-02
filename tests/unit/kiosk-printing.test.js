@@ -6,6 +6,7 @@ const {
   resolvePrintFormat,
   shouldHandleRemotePrintJob,
   validateLocalPrintPayload,
+  validatePrintPreviewPayload,
 } = require('../../src/shared/kiosk-printing');
 
 describe('kiosk-printing', () => {
@@ -48,6 +49,18 @@ describe('kiosk-printing', () => {
       print_format: 'unknown',
       mime_type: 'text/plain',
     }).valid).toBe(false);
+  });
+
+  it('valida payload de previsualización sin impresora', () => {
+    const result = validatePrintPreviewPayload({
+      document: 'XlhBXlha',
+      print_format: 'zpl',
+      job_id: 99,
+    });
+    expect(result.valid).toBe(true);
+    expect(result.value.printer_uid).toBe('');
+    expect(result.value.print_format).toBe('zpl');
+    expect(result.value.job_id).toBe(99);
   });
 
   it('detecta bytes ESC/POS binarios', () => {

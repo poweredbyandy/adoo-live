@@ -7,9 +7,16 @@ const TAB_TYPES = {
   SETTINGS: 'settings',
 };
 
-const isMenuOverlay = new URLSearchParams(window.location.search).get('overlay') === 'menu';
+const HOME_RECENT_HISTORY_LIMIT = 5;
+
+const overlayMode = new URLSearchParams(window.location.search).get('overlay') || '';
+const isMenuOverlay = overlayMode === 'menu';
+const isPreviewOverlay = overlayMode === 'preview';
 if (isMenuOverlay) {
   document.documentElement.classList.add('menu-overlay-host');
+}
+if (isPreviewOverlay) {
+  document.documentElement.classList.add('preview-overlay-host');
 }
 
 function t(msgid, params) {
@@ -151,12 +158,25 @@ const elements = {
   modeSegment: document.getElementById('mode-segment'),
   modeItems: Array.from(document.querySelectorAll('.mode-segment-option')),
   languageSelect: document.getElementById('language-select'),
+  printPreviewModeRadios: Array.from(document.querySelectorAll('input[name="print-preview-mode"]')),
   menuItems: Array.from(document.querySelectorAll('.menu-item[data-action]')),
   shellContent: document.getElementById('shell-content'),
   panelHome: document.getElementById('panel-home'),
   panelLogs: document.getElementById('panel-logs'),
   panelHistory: document.getElementById('panel-history'),
   panelDownloads: document.getElementById('panel-downloads'),
+  printPreviewBackdrop: document.getElementById('print-preview-backdrop'),
+  printPreviewDrawer: document.getElementById('print-preview-drawer'),
+  printPreviewSubtitle: document.getElementById('print-preview-subtitle'),
+  printPreviewMeta: document.getElementById('print-preview-meta'),
+  printPreviewContent: document.getElementById('print-preview-content'),
+  printPreviewEmpty: document.getElementById('print-preview-empty'),
+  btnPrintPreview: document.getElementById('btn-print-preview'),
+  btnPrintPreviewClose: document.getElementById('btn-print-preview-close'),
+  printPreviewZoomControls: document.getElementById('print-preview-zoom-controls'),
+  btnPrintPreviewZoomIn: document.getElementById('btn-print-preview-zoom-in'),
+  btnPrintPreviewZoomOut: document.getElementById('btn-print-preview-zoom-out'),
+  btnPrintPreviewZoomReset: document.getElementById('btn-print-preview-zoom-reset'),
   settingsModal: document.getElementById('settings-modal'),
   settingsModalBackdrop: document.getElementById('settings-modal-backdrop'),
   btnSettingsClose: document.getElementById('btn-settings-close'),
@@ -195,6 +215,9 @@ const elements = {
   permissionPrintersEmpty: document.getElementById('settings-permission-printers-empty'),
   permissionSerialEmpty: document.getElementById('settings-permission-serial-empty'),
   permissionUsbEmpty: document.getElementById('settings-permission-usb-empty'),
+  defaultPrinterSelect: document.getElementById('settings-default-printer'),
+  defaultSerialSelect: document.getElementById('settings-default-serial'),
+  defaultUsbSelect: document.getElementById('settings-default-usb'),
   instancesStorageSummary: document.getElementById('settings-instances-storage-summary'),
   instancesStorageList: document.getElementById('settings-instances-storage-list'),
   instancesStorageEmpty: document.getElementById('settings-instances-storage-empty'),
@@ -205,6 +228,9 @@ const elements = {
   homeInstanceUrl: document.getElementById('home-instance-url'),
   homeInstanceSubmit: document.getElementById('home-instance-submit'),
   homeInstanceCancel: document.getElementById('home-instance-cancel'),
+  homeRecentSection: document.getElementById('home-recent-section'),
+  homeRecentHistory: document.getElementById('home-recent-history'),
+  homeRecentEmpty: document.getElementById('home-recent-empty'),
   logsContent: document.getElementById('logs-content'),
   historyList: document.getElementById('history-list'),
   historyEmpty: document.getElementById('history-empty'),
@@ -249,6 +275,7 @@ const DRAG_MIME = 'application/x-odoo-kiosk-tab';
 
 let currentState = null;
 let editingInstanceId = null;
+let printPreviewObjectUrl = '';
 
 async function confirmUserAction(options = {}) {
   const result = await getApi().confirm({
@@ -477,6 +504,16 @@ function updateLanguageSelect(locale) {
     return;
   }
   elements.languageSelect.value = locale;
+}
+
+function updatePrintPreviewModeSelect(mode) {
+  if (!elements.printPreviewModeRadios.length) {
+    return;
+  }
+  const nextMode = mode || 'before';
+  elements.printPreviewModeRadios.forEach((input) => {
+    input.checked = input.value === nextMode;
+  });
 }
 
 function updateModeSwitches(activeMode) {
@@ -792,6 +829,20 @@ function renderHomeInstances(instanceData) {
   });
 }
 
+function renderHomeRecentHistory(pageHistory) {
+  if (!elements.homeRecentHistory) {
+    return;
+  }
+  const recent = (pageHistory || []).slice(0, HOME_RECENT_HISTORY_LIMIT);
+  elements.homeRecentHistory.innerHTML = '';
+  if (elements.homeRecentEmpty) {
+    elements.homeRecentEmpty.classList.toggle('hidden', recent.length > 0);
+  }
+  recent.forEach((entry) => {
+    elements.homeRecentHistory.appendChild(createHistoryItem(entry));
+  });
+}
+
 function renderHistory(pageHistory) {
   const allEntries = pageHistory || [];
   const filtered = filterHistoryEntries(allEntries, historySearchQuery);
@@ -940,6 +991,271 @@ function renderDownloads(downloads) {
       className: 'download-item ui-list__item',
     });
     elements.downloadsList.appendChild(row);
+  });
+}
+
+function escapeHtml(value) {
+  return String(value || '')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;');
+}
+
+function decodeBase64Bytes(value) {
+  const binary = window.atob(String(value || ''));
+  const bytes = new Uint8Array(binary.length);
+  for (let index = 0; index < binary.length; index += 1) {
+    bytes[index] = binary.charCodeAt(index);
+  }
+  return bytes;
+}
+
+function decodePreviewText(payload) {
+  const bytes = decodeBase64Bytes(payload.document);
+  const encoding = String(payload.encoding || 'utf-8').toLowerCase();
+  if (encoding === 'binary') {
+    return Array.from(bytes).map((byte) => String.fromCharCode(byte)).join('');
+  }
+  try {
+    return new TextDecoder(encoding === 'cp437' ? 'utf-8' : encoding).decode(bytes);
+  } catch {
+    return new TextDecoder('utf-8', { fatal: false }).decode(bytes);
+  }
+}
+
+function revokePrintPreviewObjectUrl() {
+  if (printPreviewObjectUrl) {
+    URL.revokeObjectURL(printPreviewObjectUrl);
+    printPreviewObjectUrl = '';
+  }
+}
+
+let printPreviewRenderToken = 0;
+let printPreviewRasterZoomLevel = 0;
+let printPreviewRasterZoomTarget = null;
+
+const PRINT_PREVIEW_RASTER_ZOOM_MIN = -4;
+const PRINT_PREVIEW_RASTER_ZOOM_MAX = 10;
+const PRINT_PREVIEW_RASTER_ZOOM_FORMATS = new Set(['esc_p', 'zpl', 'epl', 'escpos']);
+
+function isPrintPreviewRasterZoomFormat(format) {
+  return PRINT_PREVIEW_RASTER_ZOOM_FORMATS.has(String(format || '').trim().toLowerCase());
+}
+
+function setPrintPreviewRasterZoomVisible(visible) {
+  if (!elements.printPreviewZoomControls) {
+    return;
+  }
+  elements.printPreviewZoomControls.classList.toggle('hidden', !visible);
+  elements.printPreviewZoomControls.setAttribute('aria-hidden', String(!visible));
+}
+
+function applyPrintPreviewRasterZoom(level) {
+  printPreviewRasterZoomLevel = Math.max(
+    PRINT_PREVIEW_RASTER_ZOOM_MIN,
+    Math.min(PRINT_PREVIEW_RASTER_ZOOM_MAX, level),
+  );
+  const factor = zoomToFactor(printPreviewRasterZoomLevel);
+  if (printPreviewRasterZoomTarget) {
+    printPreviewRasterZoomTarget.style.zoom = String(factor);
+  }
+  if (elements.btnPrintPreviewZoomReset) {
+    elements.btnPrintPreviewZoomReset.textContent = zoomToPercent(printPreviewRasterZoomLevel);
+  }
+}
+
+function resetPrintPreviewRasterZoom() {
+  printPreviewRasterZoomTarget = null;
+  printPreviewRasterZoomLevel = 0;
+  if (elements.btnPrintPreviewZoomReset) {
+    elements.btnPrintPreviewZoomReset.textContent = zoomToPercent(0);
+  }
+  setPrintPreviewRasterZoomVisible(false);
+}
+
+function findPrintPreviewRasterZoomTarget(previewContainer) {
+  if (!previewContainer) {
+    return null;
+  }
+  return previewContainer.querySelector('.print-preview-escp-document')
+    || previewContainer.querySelector('.print-preview-raster-document')
+    || previewContainer.querySelector('.print-preview-raster.print-preview-label-page')
+    || previewContainer.querySelector('.print-preview-raster.print-preview-receipt');
+}
+
+function bindPrintPreviewRasterZoomTarget(previewContainer, format) {
+  printPreviewRasterZoomTarget = null;
+  if (!isPrintPreviewRasterZoomFormat(format)) {
+    setPrintPreviewRasterZoomVisible(false);
+    return;
+  }
+  const documentNode = findPrintPreviewRasterZoomTarget(previewContainer);
+  if (!documentNode) {
+    setPrintPreviewRasterZoomVisible(false);
+    return;
+  }
+  documentNode.classList.add('print-preview-raster-zoom-target');
+  printPreviewRasterZoomTarget = documentNode;
+  applyPrintPreviewRasterZoom(printPreviewRasterZoomLevel);
+  setPrintPreviewRasterZoomVisible(true);
+}
+
+async function renderPrintPreviewContent(payload, previewContainer, sourceText) {
+  const format = payload.print_format || 'raw';
+  const token = printPreviewRenderToken;
+  previewContainer.innerHTML = `<div class="print-preview-loading">${escapeHtml(t('Rendering preview...'))}</div>`;
+
+  let result = null;
+  try {
+    result = await getApi().renderLabelPreview({
+      print_format: format,
+      document: payload.document,
+      encoding: payload.encoding,
+      text: sourceText,
+    });
+    if (token !== printPreviewRenderToken) {
+      return;
+    }
+    previewContainer.innerHTML = result?.markup || `<pre class="print-preview-raw">${escapeHtml(sourceText)}</pre>`;
+    bindPrintPreviewRasterZoomTarget(previewContainer, format);
+  } catch {
+    if (token !== printPreviewRenderToken) {
+      return;
+    }
+    previewContainer.innerHTML = `<div class="print-preview-message">${escapeHtml(t('Could not render preview.'))}</div>`;
+  }
+
+  const displaySource = result?.sourceText || sourceText;
+  const source = document.createElement('details');
+  source.className = 'print-preview-source';
+  source.innerHTML = `<summary>${escapeHtml(t('Source'))}</summary><pre>${escapeHtml(displaySource)}</pre>`;
+  elements.printPreviewContent.appendChild(source);
+}
+
+function renderPrintPreview(payload) {
+  if (!elements.printPreviewDrawer || !elements.printPreviewContent || !elements.printPreviewEmpty) {
+    return;
+  }
+  printPreviewRenderToken += 1;
+  revokePrintPreviewObjectUrl();
+  resetPrintPreviewRasterZoom();
+  elements.printPreviewContent.innerHTML = '';
+  const hasPayload = Boolean(payload?.document);
+  elements.printPreviewDrawer.classList.toggle('hidden', !hasPayload);
+  elements.printPreviewDrawer.setAttribute('aria-hidden', String(!hasPayload));
+  if (elements.printPreviewBackdrop) {
+    elements.printPreviewBackdrop.classList.toggle('hidden', !hasPayload);
+    elements.printPreviewBackdrop.setAttribute('aria-hidden', String(!hasPayload));
+  }
+  elements.body.classList.toggle('print-preview-open', hasPayload);
+  elements.printPreviewEmpty.classList.toggle('hidden', hasPayload);
+  elements.printPreviewContent.classList.toggle('hidden', !hasPayload);
+  if (elements.btnPrintPreview) {
+    elements.btnPrintPreview.disabled = !hasPayload;
+  }
+  if (!hasPayload) {
+    if (elements.printPreviewMeta) {
+      elements.printPreviewMeta.innerHTML = '';
+    }
+    if (elements.printPreviewSubtitle) {
+      elements.printPreviewSubtitle.textContent = t('Document received from Odoo');
+    }
+    resetPrintPreviewRasterZoom();
+    return;
+  }
+
+  const format = payload.print_format || 'raw';
+  printPreviewRasterZoomLevel = 0;
+  setPrintPreviewRasterZoomVisible(isPrintPreviewRasterZoomFormat(format));
+  const title = payload.job_name || payload.document_name || t('Document');
+  if (elements.printPreviewSubtitle) {
+    elements.printPreviewSubtitle.textContent = `${title} · ${format.toUpperCase()}`;
+  }
+  if (elements.printPreviewMeta) {
+    elements.printPreviewMeta.innerHTML = [
+      ['Format', format],
+      ['MIME', payload.mime_type || ''],
+      ['Printer', payload.printer_uid || currentState?.defaultDevices?.printerUid || t('Not selected')],
+      ['Encoding', payload.encoding || ''],
+    ].map(([label, value]) => `<span><strong>${escapeHtml(t(label))}:</strong> ${escapeHtml(value)}</span>`).join('');
+  }
+
+  if (format === 'pdf') {
+    const bytes = decodeBase64Bytes(payload.document);
+    printPreviewObjectUrl = URL.createObjectURL(new Blob([bytes], { type: payload.mime_type || 'application/pdf' }));
+    const iframe = document.createElement('iframe');
+    iframe.className = 'print-preview-pdf';
+    iframe.src = printPreviewObjectUrl;
+    elements.printPreviewContent.appendChild(iframe);
+    return;
+  }
+
+  const text = decodePreviewText(payload);
+  const preview = document.createElement('div');
+  preview.className = 'print-preview-rendered';
+  elements.printPreviewContent.appendChild(preview);
+  renderPrintPreviewContent(payload, preview, text);
+}
+
+async function closePrintPreview() {
+  await runAction((api) => api.closePrintPreview(), {
+    label: t('Close print preview'),
+    describe: () => t('Closed'),
+  });
+}
+
+function bindPrintPreviewPanel() {
+  if (elements.btnPrintPreview) {
+    elements.btnPrintPreview.addEventListener('click', async () => {
+      await runAction((api) => api.printPreviewDocument(), {
+        label: t('Print preview document'),
+        describe: () => t('Print job sent'),
+      });
+    });
+  }
+  if (elements.btnPrintPreviewZoomIn) {
+    elements.btnPrintPreviewZoomIn.addEventListener('click', () => {
+      applyPrintPreviewRasterZoom(printPreviewRasterZoomLevel + 1);
+    });
+  }
+  if (elements.btnPrintPreviewZoomOut) {
+    elements.btnPrintPreviewZoomOut.addEventListener('click', () => {
+      applyPrintPreviewRasterZoom(printPreviewRasterZoomLevel - 1);
+    });
+  }
+  if (elements.btnPrintPreviewZoomReset) {
+    elements.btnPrintPreviewZoomReset.addEventListener('click', () => {
+      applyPrintPreviewRasterZoom(0);
+    });
+  }
+  if (elements.printPreviewContent) {
+    elements.printPreviewContent.addEventListener('wheel', (event) => {
+      if (elements.printPreviewZoomControls?.classList.contains('hidden')) {
+        return;
+      }
+      if (!event.ctrlKey && !event.metaKey) {
+        return;
+      }
+      event.preventDefault();
+      applyPrintPreviewRasterZoom(printPreviewRasterZoomLevel + (event.deltaY < 0 ? 1 : -1));
+    }, { passive: false });
+  }
+  if (elements.btnPrintPreviewClose) {
+    elements.btnPrintPreviewClose.addEventListener('click', () => {
+      closePrintPreview();
+    });
+  }
+  if (elements.printPreviewBackdrop) {
+    elements.printPreviewBackdrop.addEventListener('click', () => {
+      closePrintPreview();
+    });
+  }
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && !elements.printPreviewDrawer?.classList.contains('hidden')) {
+      event.preventDefault();
+      closePrintPreview();
+    }
   });
 }
 
@@ -1110,6 +1426,52 @@ function renderPermissionDeviceList(listElement, emptyElement, devices, category
   });
 }
 
+function fillDefaultDeviceSelect(selectElement, options, selectedValue, emptyLabel) {
+  if (!selectElement) {
+    return;
+  }
+  selectElement.innerHTML = '';
+  const emptyOption = document.createElement('option');
+  emptyOption.value = '';
+  emptyOption.textContent = emptyLabel;
+  selectElement.appendChild(emptyOption);
+  (options || []).forEach((option) => {
+    const item = document.createElement('option');
+    item.value = option.value;
+    item.textContent = option.label;
+    selectElement.appendChild(item);
+  });
+  selectElement.value = selectedValue || '';
+}
+
+function renderSettingsDefaultDevices(data, defaults) {
+  const snapshot = defaults || currentState?.defaultDevices || {};
+  const allowedPrinters = (data?.printers || []).filter((device) => device.allowed);
+  const allowedSerial = (data?.serial || []).filter((device) => device.allowed);
+  const allowedUsb = (data?.usb || []).filter((device) => device.allowed);
+  fillDefaultDeviceSelect(
+    elements.defaultPrinterSelect,
+    allowedPrinters.map((device) => ({ value: device.id, label: device.label })),
+    snapshot.printerUid,
+    t('System default'),
+  );
+  fillDefaultDeviceSelect(
+    elements.defaultSerialSelect,
+    allowedSerial.map((device) => ({ value: device.id, label: device.label })),
+    snapshot.serialPath,
+    t('None'),
+  );
+  fillDefaultDeviceSelect(
+    elements.defaultUsbSelect,
+    allowedUsb.map((device) => ({
+      value: device.id,
+      label: device.label || device.id,
+    })),
+    snapshot.usbDeviceKey,
+    t('None'),
+  );
+}
+
 function renderSettingsPermissionDevices(data, permissions) {
   const snapshot = permissions || currentState?.permissions || {};
   const printersEnabled = Boolean(snapshot.printers);
@@ -1145,6 +1507,7 @@ function renderSettingsPermissionDevices(data, permissions) {
     data.usb,
     'usb',
   );
+  renderSettingsDefaultDevices(data, currentState?.defaultDevices);
 }
 
 async function loadSettingsPermissionDevices() {
@@ -1286,6 +1649,8 @@ function renderSettingsPermissions(permissions) {
   });
   if (permissionDevicesCache) {
     renderSettingsPermissionDevices(permissionDevicesCache, permissions);
+  } else if (currentState?.defaultDevices) {
+    renderSettingsDefaultDevices(null, currentState.defaultDevices);
   }
 }
 
@@ -1734,6 +2099,25 @@ function bindSettingsPanel() {
 
   document.addEventListener('change', async (event) => {
     const target = event.target;
+    if (target instanceof HTMLSelectElement && target.classList.contains('settings-default-device-select')) {
+      const defaults = {
+        printerUid: elements.defaultPrinterSelect?.value || '',
+        serialPath: elements.defaultSerialSelect?.value || '',
+        usbDeviceKey: elements.defaultUsbSelect?.value || '',
+      };
+      try {
+        const next = await runAction((api) => api.setDefaultDevices(defaults), {
+          label: t('Default devices'),
+          describe: () => t('Default devices updated'),
+        });
+        if (next && currentState) {
+          currentState = { ...currentState, defaultDevices: next };
+        }
+      } catch {
+        renderSettingsDefaultDevices(permissionDevicesCache, currentState?.defaultDevices);
+      }
+      return;
+    }
     if (!(target instanceof HTMLInputElement) || !target.classList.contains('settings-permission-device-toggle')) {
       return;
     }
@@ -1862,6 +2246,7 @@ function closeSettingsModal() {
 function renderPanelContent(state) {
   const data = state.panelData || {};
   renderHomeInstances(data.instances);
+  renderHomeRecentHistory(data.pageHistory);
   renderLogs(data.logs);
   renderHistory(data.pageHistory);
   renderDownloads(data.downloads);
@@ -2038,6 +2423,11 @@ function applyOverlayState(state) {
 function applyState(state) {
   currentState = state;
   syncI18nFromState(state);
+  updatePrintPreviewModeSelect(state.printPreviewMode);
+  if (isPreviewOverlay) {
+    renderPrintPreview(state.panelData?.printPreview);
+    return;
+  }
   if (isMenuOverlay) {
     applyOverlayState(state);
     return;
@@ -2053,6 +2443,7 @@ function applyState(state) {
   }
 
   applyChromeLayout(state);
+  renderPrintPreview(state.panelData?.printPreview);
 
   const odooActive = state.isOdooTabActive;
   elements.btnBack.disabled = !odooActive || !state.canGoBack;
@@ -2735,6 +3126,18 @@ function bindMenuHandlers() {
     });
   }
 
+  elements.printPreviewModeRadios.forEach((input) => {
+    input.addEventListener('change', async () => {
+      if (!input.checked) {
+        return;
+      }
+      await runAction((api) => api.setPrintPreviewMode(input.value), {
+        label: t('Print preview'),
+        describe: (value) => value,
+      });
+    });
+  });
+
   elements.menuItems.forEach((button) => {
     button.addEventListener('click', () => handleMenuAction(button.dataset.action));
   });
@@ -2775,6 +3178,7 @@ function boot() {
 
     setupTabsDropZone();
     bindHomeInstanceForm();
+    bindPrintPreviewPanel();
     bindSettingsPanel();
     bindUpdateToast();
     api.onStateUpdate(applyState);

@@ -7,13 +7,13 @@ const { promisify } = require('util');
 const { BrowserWindow } = require('electron');
 const { loadConfig } = require('./config');
 const { PERMISSION_TYPES, isPermissionGranted } = require('./permission-service');
-const { isDeviceAllowed, buildPrinterDeviceKey } = require('./device-permission-service');
+const { isDeviceAllowed, buildPrinterDeviceKey } = require('./device-permission-core');
 const {
   buildPrinterUid,
   getPrintersPayload,
   mapPrinter,
 } = require('./device-printers');
-const { loadSerialPort } = require('./ipc/serial');
+const { loadSerialPort } = require('./serial-loader');
 const {
   DIRECT_DEVICE_FORMATS,
   ESCPOS_FORMATS,

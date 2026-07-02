@@ -29,13 +29,13 @@ describe('odoo-debug', () => {
     expect(normalizeOdooWebPath('/')).toBe('/web');
   });
 
-  it('recarga el cliente web con query debug', () => {
+  it('recarga la misma página con query debug', () => {
     const next = buildOdooDebugReloadUrl('https://example.com/odoo/web#action=crm&menu_id=1', '1');
-    expect(next).toBe('https://example.com/odoo/web?debug=1');
+    expect(next).toBe('https://example.com/odoo/web?debug=1#action=crm&menu_id=1');
   });
 
-  it('usa /web cuando la URL no incluye el cliente', () => {
+  it('conserva la ruta actual cuando la URL no incluye el cliente', () => {
     const next = buildOdooDebugReloadUrl('https://example.com/', 'assets');
-    expect(next).toBe('https://example.com/web?debug=assets');
+    expect(next).toBe('https://example.com/?debug=assets');
   });
 });

@@ -17,7 +17,7 @@
     "changelog:sync": "node scripts/sync-changelog.js",
     "changelog:preview": "node scripts/release-notes.js",
     "release:github": "bash scripts/github-release.sh",
-    "rebuild": "node scripts/patch-usb-binding.js && electron-rebuild -f -w serialport,usb",
+    "rebuild": "node scripts/patch-usb-binding.js && electron-rebuild -f -w serialport,usb,@napi-rs/canvas",
     "postinstall": "node scripts/postinstall.js",
     "dist": "electron-builder --publish never",
     "dist:win": "electron-builder --win --publish never",
@@ -25,11 +25,16 @@
     "dist:mac": "electron-builder --mac --publish never",
     "dist:validate:mac": "bash scripts/collect-release-artifacts.sh mac",
     "dist:validate:linux": "bash scripts/collect-release-artifacts.sh linux",
-    "dist:validate:win": "bash scripts/collect-release-artifacts.sh win"
+    "dist:validate:win": "bash scripts/collect-release-artifacts.sh win",
+    "preview:lx300": "node scripts/preview-lx300-reference.js"
   },
   "dependencies": {
+    "@napi-rs/canvas": "^1.0.2",
+    "@zebrash/node": "^1.0.3",
+    "bwip-js": "^4.11.2",
     "electron-updater": "^6.8.9",
     "http_ece": "^1.2.0",
+    "portakal": "^0.5.0",
     "serialport": "^13.0.0",
     "usb": "^2.18.0",
     "ws": "^8.21.0"
@@ -69,7 +74,18 @@
       "target": [
         "dmg",
         "zip"
-      ]
+      ],
+      "dmg": {
+        "title": "adoo IoT ${version}",
+        "contents": [
+          {
+            "x": 130,
+            "y": 220,
+            "type": "file",
+            "path": "build/macos-install.txt"
+          }
+        ]
+      }
     },
     "win": {
       "artifactName": "adoo-IoT-Setup-${version}.${ext}",
